@@ -7,12 +7,12 @@
       "RelativeMoniker": "D:0:0:{B6964066-AB8F-4224-9734-C87C7D152A8A}|GPSserver\\GPSserver.csproj|solutionrelative:gpsserver\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{B6964066-AB8F-4224-9734-C87C7D152A8A}|GPSserver\\GPSserver.csproj|C:\\Polytech\\SI4\\Middleware\\Projet\\Middleware\\ServeurREST\\GPSserver\\gpsserver\\servergps.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B6964066-AB8F-4224-9734-C87C7D152A8A}|GPSserver\\GPSserver.csproj|solutionrelative:gpsserver\\servergps.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{B6964066-AB8F-4224-9734-C87C7D152A8A}|GPSserver\\GPSserver.csproj|c:\\polytech\\si4\\middleware\\projet\\middleware\\serveurrest\\gpsserver\\gpsserver\\iservergps.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{B6964066-AB8F-4224-9734-C87C7D152A8A}|GPSserver\\GPSserver.csproj|solutionrelative:gpsserver\\iservergps.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B6964066-AB8F-4224-9734-C87C7D152A8A}|GPSserver\\GPSserver.csproj|C:\\Polytech\\SI4\\Middleware\\Projet\\Middleware\\ServeurREST\\GPSserver\\gpsserver\\servergps.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B6964066-AB8F-4224-9734-C87C7D152A8A}|GPSserver\\GPSserver.csproj|solutionrelative:gpsserver\\servergps.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{B6964066-AB8F-4224-9734-C87C7D152A8A}|GPSserver\\GPSserver.csproj|C:\\Polytech\\SI4\\Middleware\\Projet\\Middleware\\ServeurREST\\GPSserver\\gpsserver\\app.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
@@ -30,7 +30,7 @@
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "ServerGPS.cs",
               "DocumentMoniker": "C:\\Polytech\\SI4\\Middleware\\Projet\\Middleware\\ServeurREST\\GPSserver\\GPSserver\\ServerGPS.cs",
               "RelativeDocumentMoniker": "GPSserver\\ServerGPS.cs",
@@ -38,18 +38,17 @@
               "RelativeToolTip": "GPSserver\\ServerGPS.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-13T07:52:26.96Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-13T07:52:26.96Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 1,
               "Title": "IServerGPS.cs",
               "DocumentMoniker": "C:\\Polytech\\SI4\\Middleware\\Projet\\Middleware\\ServeurREST\\GPSserver\\GPSserver\\IServerGPS.cs",
               "RelativeDocumentMoniker": "GPSserver\\IServerGPS.cs",
               "ToolTip": "C:\\Polytech\\SI4\\Middleware\\Projet\\Middleware\\ServeurREST\\GPSserver\\GPSserver\\IServerGPS.cs",
               "RelativeToolTip": "GPSserver\\IServerGPS.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAbAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAhAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-10-13T07:52:12.481Z",
               "EditorCaption": ""
@@ -62,7 +61,7 @@
               "RelativeDocumentMoniker": "GPSserver\\Program.cs",
               "ToolTip": "C:\\Polytech\\SI4\\Middleware\\Projet\\Middleware\\ServeurREST\\GPSserver\\GPSserver\\Program.cs",
               "RelativeToolTip": "GPSserver\\Program.cs",
-              "ViewState": "AgIAAAcAAAAAAAAAAAAAAB0AAAAFAAAAAAAAAA==",
+              "ViewState": "AgIAAA4AAAAAAAAAAAAAwBIAAABYAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-10-13T07:50:13.449Z",
               "EditorCaption": ""
@@ -77,7 +76,8 @@
               "RelativeToolTip": "GPSserver\\App.config",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000601|",
-              "WhenOpened": "2025-10-13T07:51:20.451Z"
+              "WhenOpened": "2025-10-13T07:51:20.451Z",
+              "EditorCaption": ""
             }
           ]
         }

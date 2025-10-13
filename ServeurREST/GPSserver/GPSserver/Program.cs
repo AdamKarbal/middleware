@@ -5,6 +5,7 @@ using System.ServiceModel;
 using System.ServiceModel.Description;
 using System.Text;
 using System.Threading.Tasks;
+using System.ServiceModel.Web;
 
 namespace GPSserver
 {
@@ -14,6 +15,8 @@ namespace GPSserver
         {
             Uri baseUrl = new Uri("http://localhost:8000/ServerGPS");
             ServiceHost host = new ServiceHost(typeof(ServerGPS), baseUrl);
+
+            var JC_KEY = "c2388aa3d552da1e50d5540b501ae4a278082058"; // Clé API JCDecaux
 
             ServiceEndpoint ep = host.AddServiceEndpoint(typeof(IServerGPS), new WebHttpBinding(), "");
             ep.Behaviors.Add(new WebHttpBehavior());
@@ -27,5 +30,5 @@ namespace GPSserver
             Console.WriteLine("Press Enter to terminate the service.");
             Console.ReadLine();
         }
-    }
+    }   
 }
