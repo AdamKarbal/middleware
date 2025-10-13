@@ -14,11 +14,9 @@ namespace ProxyCache
         
         public string Get(string url)
         {
-            if (cache.Contains(url))
-            {
-                return (string)cache.Get(url);
-            }
-            else
+            if (cache.Contains(url)) return (string)cache.Get(url);
+            
+            try
             {
                 using(WebClient client = new WebClient())
                 {
@@ -29,6 +27,32 @@ namespace ProxyCache
                         return content;
                     }
                 
+            }
+            catch (Exception ex)
+            {
+                return $"Error fetching URL: {ex.Message}";
+            }
+        }
+
+        public string GetWithTtl(string url,double seconds)
+        {
+            if (cache.Contains(url)) return (string)cache.Get(url);
+            try
+            {
+                using (WebClient client = new WebClient())
+                {
+                    if(seconds<1) seconds=1;
+                    string content = client.DownloadString(url);
+                    CacheItemPolicy policy = new CacheItemPolicy();
+                    policy.AbsoluteExpiration = DateTimeOffset.Now.AddSeconds(seconds);
+                    cache.Add(url, content, policy);
+                    return content;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return $"Error fetching URL: {ex.Message}";
             }
         }
     }

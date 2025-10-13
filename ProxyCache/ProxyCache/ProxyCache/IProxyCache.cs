@@ -7,13 +7,16 @@ using System.Threading.Tasks;
 
 namespace ProxyCache
 {
-    [ServiceContract()]
 
-    class IProxyCache
+    [ServiceContract]
+    public interface IProxyCache
     {
         [OperationContract]
         string Get(string url);
 
+        [OperationContract]
+        string GetWithTtl(string url, double seconds);
 
-    }
+    } 
 }
+
