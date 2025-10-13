@@ -1,0 +1,16 @@
+<template>
+  <div class="itineraire-container">
+    <h1>Itinéraire</h1>
+    <form class="itineraire-form">
+      <div class="autocomplete-group">
+        <input type="text" id="start" class="autocomplete" placeholder="Choisissez un point de départ" />
+        <ul id="start-suggestions" class="suggestions"></ul>
+      </div>
+      <div class="autocomplete-group">
+        <input type="text" id="end" class="autocomplete" placeholder="Choisissez une destination" />
+        <ul id="end-suggestions" class="suggestions"></ul>
+      </div>
+      <button type="button" id="start-itinerary">Démarrer</button>
+    </form>
+  </div>
+</template>

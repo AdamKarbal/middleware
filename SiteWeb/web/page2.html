@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Itinéraire</title>
+  <link rel="stylesheet" href="/css/page2.css">
+</head>
+<body>
+<header>
+  <mon-burgermenu></mon-burgermenu>
+</header>
+
+<div class="page-container">
+  <aside class="sidebar">
+    <h3>Modifier l'itinéraire</h3>
+    <mon-itineraire></mon-itineraire>
+    <div class="current-itinerary">
+      <h4>Itinéraire actuel</h4>
+      <p>Départ : <span id="current-start">Paris</span></p>
+      <p>Arrivée : <span id="current-end">Lyon</span></p>
+    </div>
+  </aside>
+  <main class="main-content">
+    <mon-tabs>
+      <div slot="tab-map">
+        <h2>Carte</h2>
+        <div class="map-container">
+          <p>Carte de l'itinéraire (placeholder)</p>
+        </div>
+      </div>
+      <div slot="tab-details">
+        <h2>Détails</h2>
+        <div class="details-container">
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+          <p>Étape 1 : Lorem ipsum dolor sit amet.</p>
+          <p>Étape 2 : Consectetur adipiscing elit.</p>
+        </div>
+      </div>
+    </mon-tabs>
+  </main>
+
+</div>
+<footer>
+  <mon-footer></mon-footer>
+</footer>
+<script src="js/itineraire.js" defer></script>
+<script src="js/burgermenu.js" defer></script>
+<script src="js/footer.js" defer></script>
+<script src="js/tabs.js" defer></script>
+</body>
+</html>
