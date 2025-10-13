@@ -3,7 +3,7 @@
   "WorkspaceRootPath": "C:\\Polytech\\SI4\\Middleware\\Projet\\Middleware\\ServeurREST\\GPSserver\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{B6964066-AB8F-4224-9734-C87C7D152A8A}|GPSserver\\GPSserver.csproj|c:\\polytech\\si4\\middleware\\projet\\middleware\\serveurrest\\gpsserver\\gpsserver\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{B6964066-AB8F-4224-9734-C87C7D152A8A}|GPSserver\\GPSserver.csproj|C:\\Polytech\\SI4\\Middleware\\Projet\\Middleware\\ServeurREST\\GPSserver\\gpsserver\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{B6964066-AB8F-4224-9734-C87C7D152A8A}|GPSserver\\GPSserver.csproj|solutionrelative:gpsserver\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
@@ -11,7 +11,7 @@
       "RelativeMoniker": "D:0:0:{B6964066-AB8F-4224-9734-C87C7D152A8A}|GPSserver\\GPSserver.csproj|solutionrelative:gpsserver\\servergps.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{B6964066-AB8F-4224-9734-C87C7D152A8A}|GPSserver\\GPSserver.csproj|C:\\Polytech\\SI4\\Middleware\\Projet\\Middleware\\ServeurREST\\GPSserver\\gpsserver\\iservergps.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{B6964066-AB8F-4224-9734-C87C7D152A8A}|GPSserver\\GPSserver.csproj|c:\\polytech\\si4\\middleware\\projet\\middleware\\serveurrest\\gpsserver\\gpsserver\\iservergps.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{B6964066-AB8F-4224-9734-C87C7D152A8A}|GPSserver\\GPSserver.csproj|solutionrelative:gpsserver\\iservergps.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
@@ -49,7 +49,7 @@
               "RelativeDocumentMoniker": "GPSserver\\IServerGPS.cs",
               "ToolTip": "C:\\Polytech\\SI4\\Middleware\\Projet\\Middleware\\ServeurREST\\GPSserver\\GPSserver\\IServerGPS.cs",
               "RelativeToolTip": "GPSserver\\IServerGPS.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAbAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-10-13T07:52:12.481Z",
               "EditorCaption": ""
@@ -62,7 +62,7 @@
               "RelativeDocumentMoniker": "GPSserver\\Program.cs",
               "ToolTip": "C:\\Polytech\\SI4\\Middleware\\Projet\\Middleware\\ServeurREST\\GPSserver\\GPSserver\\Program.cs",
               "RelativeToolTip": "GPSserver\\Program.cs",
-              "ViewState": "AgIAAAcAAAAAAAAAAAAAAA4AAABCAAAAAAAAAA==",
+              "ViewState": "AgIAAAcAAAAAAAAAAAAAAB0AAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-10-13T07:50:13.449Z",
               "EditorCaption": ""

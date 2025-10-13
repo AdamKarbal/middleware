@@ -12,11 +12,11 @@ namespace GPSserver
     {
         static void Main(string[] args)
         {
-            Uri baseUrl = new Uri("http://localhost:8000/GPSserver");
+            Uri baseUrl = new Uri("http://localhost:8000/ServerGPS");
             ServiceHost host = new ServiceHost(typeof(ServerGPS), baseUrl);
 
-            host.AddServiceEndpoint(typeof(IServerGPS), new WebHttpBinding(), "");
-
+            ServiceEndpoint ep = host.AddServiceEndpoint(typeof(IServerGPS), new WebHttpBinding(), "");
+            ep.Behaviors.Add(new WebHttpBehavior());
             ServiceMetadataBehavior smb = new ServiceMetadataBehavior();
             smb.HttpGetEnabled= true;
             host.Description.Behaviors.Add(smb);

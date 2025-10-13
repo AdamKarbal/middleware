@@ -13,7 +13,7 @@ namespace GPSserver
     {
 
         [OperationContract]
-        [WebInvoke(Method = "GET", ResponseFormat = WebMessageFormat.Json, BodyStyle = WebMessageBodyStyle.Wrapped, UriTemplate = "GetGPS?lat={lat}&lon={lon}")]
+        [WebInvoke(Method = "GET", ResponseFormat = WebMessageFormat.Json, BodyStyle = WebMessageBodyStyle.Wrapped, UriTemplate = "echoGPS?lat={lat}&lon={lon}")]
         String echoGPS(String lat, String lon);
     }
 }
