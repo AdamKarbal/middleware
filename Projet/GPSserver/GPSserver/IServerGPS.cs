@@ -15,5 +15,15 @@ namespace GPSserver
         [OperationContract]
         [WebInvoke(Method = "GET", ResponseFormat = WebMessageFormat.Json, BodyStyle = WebMessageBodyStyle.Wrapped, UriTemplate = "echoGPS?lat={lat}&lon={lon}")]
         String echoGPS(String lat, String lon);
+
+        [OperationContract]
+        [WebInvoke(Method = "GET", UriTemplate = "health",
+           BodyStyle = WebMessageBodyStyle.Bare, ResponseFormat = WebMessageFormat.Json)]
+        string Health();
+
+        [OperationContract]
+        [WebInvoke(Method = "GET", UriTemplate = "testContracts",
+                   BodyStyle = WebMessageBodyStyle.Bare, ResponseFormat = WebMessageFormat.Json)]
+        string TestContracts();
     }
 }
