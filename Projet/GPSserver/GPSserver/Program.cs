@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.ServiceModel;
 using System.ServiceModel.Description;
-using System.Text;
-using System.Threading.Tasks;
 using System.ServiceModel.Web;
 
 namespace GPSserver
@@ -18,17 +14,27 @@ namespace GPSserver
             Uri baseUrl = new Uri("http://localhost:8000/ServerGPS/");
             ServiceHost host = new ServiceHost(typeof(ServerGPS), baseUrl);
 
-            ServiceEndpoint ep = host.AddServiceEndpoint(typeof(IServerGPS), new WebHttpBinding(), "");
-            ep.Behaviors.Add(new WebHttpBehavior());
+            // --- ENDPOINT #1 : Le service REST (votre code actuel) ---
+            // Il sera accessible à l'adresse de base : http://localhost:8000/ServerGPS/
+            ServiceEndpoint restEndpoint = host.AddServiceEndpoint(typeof(IServerGPS), new WebHttpBinding(), "");
+            restEndpoint.Behaviors.Add(new WebHttpBehavior());
+
+            // --- ENDPOINT #2 : Le service SOAP (pour l'outil "Ajouter une référence") ---
+            // On lui donne une adresse relative différente pour ne pas créer de conflit.
+            // Il sera accessible à : http://localhost:8000/ServerGPS/soap
+            host.AddServiceEndpoint(typeof(IServerGPS), new BasicHttpBinding(), "soap");
             ServiceMetadataBehavior smb = new ServiceMetadataBehavior();
-            smb.HttpGetEnabled= true;
+            smb.HttpGetEnabled = true;
             host.Description.Behaviors.Add(smb);
 
             host.Open();
 
-            Console.WriteLine("Service is running at " + baseUrl);
+            Console.WriteLine("Service is running.");
+            Console.WriteLine("REST endpoint at: " + baseUrl);
+            Console.WriteLine("SOAP endpoint at: " + baseUrl + "soap");
             Console.WriteLine("Press Enter to terminate the service.");
             Console.ReadLine();
+            host.Close(); // Bonne pratique de fermer le host
         }
-    }   
+    }
 }

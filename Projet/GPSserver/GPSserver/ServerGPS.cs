@@ -21,10 +21,21 @@ namespace GPSserver
 
         public string TestContracts()
         {
-            using (var proxy = new ProxyServiceClient())  // nom exact selon ta ref
+            var binding = new System.ServiceModel.BasicHttpBinding();
+            var address = new System.ServiceModel.EndpointAddress("http://localhost:8090/ProxyCache");
+            using (var proxy = new ProxyClient(binding, address))
             {
-                var url = $"https://api.jcdecaux.com/vls/v3/contracts?apiKey={_jcKey}";
-                return proxy.GetWithTtl(url, 10); // TTL court pour voir MISS puis HIT côté Proxy
+                Console.WriteLine("GPSServer is calling ProxyCache...");
+                try
+                {
+                    var url = $"https://api.jcdecaux.com/vls/v3/contracts?apiKey={_jcKey}";
+                    return proxy.GetWithTtlAsync(url, 10).Result;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Erreur : " + ex.ToString());
+                    return "Erreur";
+                }
             }
         }
     }
