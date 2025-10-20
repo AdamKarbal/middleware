@@ -13,8 +13,8 @@ namespace ProxyCache
         static void Main(string[] args)
         {
             Uri httpUrl = new Uri("http://localhost:8090/ProxyCache");
-            ServiceHost host = new ServiceHost(typeof(ProxyCache), httpUrl);
-            host.AddServiceEndpoint(typeof(IProxyCache), new WSHttpBinding(), "");
+            ServiceHost host = new ServiceHost(typeof(Proxy), httpUrl);
+            host.AddServiceEndpoint(typeof(IProxy), new BasicHttpBinding(), "");
             ServiceMetadataBehavior smb = new ServiceMetadataBehavior();
             smb.HttpGetEnabled = true;
             host.Description.Behaviors.Add(smb);

@@ -9,7 +9,7 @@ namespace ProxyCache
 {
 
     [ServiceContract]
-    public interface IProxyCache
+    public interface IProxy
     {
         [OperationContract]
         string Get(string url);

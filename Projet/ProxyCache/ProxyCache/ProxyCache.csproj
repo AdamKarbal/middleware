@@ -46,8 +46,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IProxyCache.cs" />
-    <Compile Include="ProxyCache.cs" />
+    <Compile Include="UrlContentFetcher.cs" />
+    <Compile Include="GenericProxyCache.cs" />
+    <Compile Include="IProxy.cs" />
+    <Compile Include="Proxy.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

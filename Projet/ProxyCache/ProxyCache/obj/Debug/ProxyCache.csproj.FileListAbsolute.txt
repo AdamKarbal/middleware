@@ -5,3 +5,10 @@ C:\Polytech\SI4\Middleware\Projet\Middleware\ProxyCache\ProxyCache\ProxyCache\ob
 C:\Polytech\SI4\Middleware\Projet\Middleware\ProxyCache\ProxyCache\ProxyCache\obj\Debug\ProxyCache.csproj.CoreCompileInputs.cache
 C:\Polytech\SI4\Middleware\Projet\Middleware\ProxyCache\ProxyCache\ProxyCache\obj\Debug\ProxyCache.exe
 C:\Polytech\SI4\Middleware\Projet\Middleware\ProxyCache\ProxyCache\ProxyCache\obj\Debug\ProxyCache.pdb
+C:\Users\adamo\Desktop\SI4\middleware\Projet2\Middleware\Projet\ProxyCache\ProxyCache\bin\Debug\ProxyCache.exe.config
+C:\Users\adamo\Desktop\SI4\middleware\Projet2\Middleware\Projet\ProxyCache\ProxyCache\bin\Debug\ProxyCache.exe
+C:\Users\adamo\Desktop\SI4\middleware\Projet2\Middleware\Projet\ProxyCache\ProxyCache\bin\Debug\ProxyCache.pdb
+C:\Users\adamo\Desktop\SI4\middleware\Projet2\Middleware\Projet\ProxyCache\ProxyCache\obj\Debug\ProxyCache.csproj.AssemblyReference.cache
+C:\Users\adamo\Desktop\SI4\middleware\Projet2\Middleware\Projet\ProxyCache\ProxyCache\obj\Debug\ProxyCache.csproj.CoreCompileInputs.cache
+C:\Users\adamo\Desktop\SI4\middleware\Projet2\Middleware\Projet\ProxyCache\ProxyCache\obj\Debug\ProxyCache.exe
+C:\Users\adamo\Desktop\SI4\middleware\Projet2\Middleware\Projet\ProxyCache\ProxyCache\obj\Debug\ProxyCache.pdb
