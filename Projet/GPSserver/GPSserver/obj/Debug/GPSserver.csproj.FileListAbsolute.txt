@@ -5,3 +5,10 @@ C:\Polytech\SI4\Middleware\Projet\Middleware\ServeurREST\GPSserver\GPSserver\obj
 C:\Polytech\SI4\Middleware\Projet\Middleware\ServeurREST\GPSserver\GPSserver\obj\Debug\GPSserver.csproj.CoreCompileInputs.cache
 C:\Polytech\SI4\Middleware\Projet\Middleware\ServeurREST\GPSserver\GPSserver\obj\Debug\GPSserver.exe
 C:\Polytech\SI4\Middleware\Projet\Middleware\ServeurREST\GPSserver\GPSserver\obj\Debug\GPSserver.pdb
+C:\Polytech\SI4\Middleware\Projet\Middleware\Projet\GPSserver\GPSserver\obj\Debug\GPSserver.csproj.AssemblyReference.cache
+C:\Polytech\SI4\Middleware\Projet\Middleware\Projet\GPSserver\GPSserver\obj\Debug\GPSserver.csproj.CoreCompileInputs.cache
+C:\Polytech\SI4\Middleware\Projet\Middleware\Projet\GPSserver\GPSserver\obj\Debug\GPSserver.exe
+C:\Polytech\SI4\Middleware\Projet\Middleware\Projet\GPSserver\GPSserver\obj\Debug\GPSserver.pdb
+C:\Polytech\SI4\Middleware\Projet\Middleware\Projet\GPSserver\GPSserver\bin\Debug\GPSserver.exe.config
+C:\Polytech\SI4\Middleware\Projet\Middleware\Projet\GPSserver\GPSserver\bin\Debug\GPSserver.exe
+C:\Polytech\SI4\Middleware\Projet\Middleware\Projet\GPSserver\GPSserver\bin\Debug\GPSserver.pdb
