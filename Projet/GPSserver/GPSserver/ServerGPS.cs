@@ -1,21 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Globalization; // Pour le formatage des nombres (points vs virgules)
+using System.Globalization; 
 using System.Linq;
-using System.ServiceModel; // Pour le ProxyClient
+using System.ServiceModel; 
 using System.Text;
 using System.Threading.Tasks;
-using GPSserver.Models; // NÉCESSITE LES MODÈLES (voir ci-dessous)
-using Newtonsoft.Json;  // NÉCESSITE LE PACKAGE NUGGET Newtonsoft.Json
+using GPSserver.Models; 
+using Newtonsoft.Json;
+using System.ServiceModel.Web;
 
 namespace GPSserver
 {
     internal class ServerGPS : IServerGPS
     {
         private readonly string _jcKey = Program.JC_KEY;
-
-        // !!! AJOUTEZ VOTRE CLÉ API OPENROUTESERVICE ICI !!!
         private readonly string _orsKey = Program.OS_KEY;
 
         // Culture invariable pour s'assurer que les "." sont utilisés pour les décimales
@@ -48,9 +47,6 @@ namespace GPSserver
             }
         }
 
-        // ==================================================================
-        // MÉTHODE PRINCIPALE POUR L'ITINÉRAIRE
-        // ==================================================================
         public string FindItinerary(string fromLat, string fromLon, string toLat, string toLon)
         {
             try
@@ -180,36 +176,24 @@ namespace GPSserver
                         }
                     };
                 }
-
-                // Sérialiser notre objet réponse en JSON
-                return JsonConvert.SerializeObject(response, Formatting.Indented);
+                string jsonResponse = JsonConvert.SerializeObject(response, Formatting.Indented);
+                AddCorsHeaders(); 
+                return jsonResponse;
             }
             catch (Exception ex)
             {
-                // --- DÉBUT DE LA MODIFICATION ---
-
-                // On "déballe" l'AggregateException pour trouver la VRAIE erreur
+     
                 Exception realError = ex;
                 if (ex is AggregateException && ex.InnerException != null)
                 {
                     realError = ex.InnerException;
                 }
-
-                // On affiche tous les détails dans la console pour le debug
                 Console.WriteLine("Erreur DÉTAILLÉE dans FindItinerary : \n" + realError.ToString());
-
-                // On renvoie le message de la VRAIE erreur au client
                 return CreateErrorResponse(realError.Message);
-
-                // --- FIN DE LA MODIFICATION ---
             }
         }
 
-        // ==================================================================
-        // MÉTHODES HELPER
-        // ==================================================================
 
-        // --- Helpers JCDecaux ---
 
         private string GetCityFromGps(Position pos)
         {
@@ -219,7 +203,7 @@ namespace GPSserver
 
             using (var proxy = CreateProxyClient())
             {
-                string jsonResponse = proxy.GetWithTtlAsync(url, 3600).Result; // Cache 1h
+                string jsonResponse = proxy.GetWithTtlAsync(url, 3600).Result; 
                 var response = JsonConvert.DeserializeObject<OrsReverseGeocodeResponse>(jsonResponse);
 
                 return response?.Features?.FirstOrDefault()?.Properties?.Locality;
@@ -232,7 +216,7 @@ namespace GPSserver
 
             using (var proxy = CreateProxyClient())
             {
-                string jsonResponse = proxy.GetWithTtlAsync(url, 86400).Result; // Cache 24h
+                string jsonResponse = proxy.GetWithTtlAsync(url, 86400).Result;
                 var allContracts = JsonConvert.DeserializeObject<List<JcdecauxContract>>(jsonResponse);
 
                 var foundContract = allContracts
@@ -252,22 +236,15 @@ namespace GPSserver
 
             using (var proxy = CreateProxyClient())
             {
-                string jsonResponse = proxy.GetWithTtlAsync(url, 1).Result;
+                string jsonResponse = proxy.GetWithTtlAsync(url, 300).Result;
 
                 Console.WriteLine($"DEBUG: Appel de GetJcDecauxStations avec le contrat : {contractQuery}");
                 Console.WriteLine($"DEBUG: Réponse JSON des stations (taille) : {jsonResponse.Length}");
-
-                // --- DÉBUT DE LA MODIFICATION ---
                 List<Station> stations = JsonConvert.DeserializeObject<List<Station>>(jsonResponse);
-
-                // LA LIGNE DE DEBUG LA PLUS IMPORTANTE :
                 Console.WriteLine($"DEBUG: Nombre de stations désérialisées : {stations.Count}");
 
-                return stations;
-                // --- FIN DE LA MODIFICATION ---
-            }
+                return stations;            }
         }
-        // --- Helpers OpenRouteService ---
 
         private OrsResponse GetOrsRoute(string profile, Position start, Position end)
         {
@@ -278,12 +255,11 @@ namespace GPSserver
 
             using (var proxy = CreateProxyClient())
             {
-                string jsonResponse = proxy.GetWithTtlAsync(url, 3600).Result; // Cache 1h
+                string jsonResponse = proxy.GetWithTtlAsync(url, 3600).Result;
                 return JsonConvert.DeserializeObject<OrsResponse>(jsonResponse);
             }
         }
 
-        // --- Helpers de Logique/Calcul ---
 
         private Station FindClosestStationWithBikes(List<Station> stations, Position origin)
         {
@@ -309,7 +285,7 @@ namespace GPSserver
 
         private double CalculateDistance(Position pos1, Position pos2)
         {
-            var R = 6371e3; // Rayon de la Terre en mètres
+            var R = 6371e3; 
             var lat1Rad = ToRadians(pos1.Latitude);
             var lat2Rad = ToRadians(pos2.Latitude);
             var dLat = ToRadians(pos2.Latitude - pos1.Latitude);
@@ -319,7 +295,7 @@ namespace GPSserver
                     Math.Cos(lat1Rad) * Math.Cos(lat2Rad) *
                     Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
             var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-            return R * c; // en mètres
+            return R * c; 
         }
 
         private double ToRadians(double deg)
@@ -327,19 +303,13 @@ namespace GPSserver
             return deg * (Math.PI / 180);
         }
 
-        // --- Helpers Utilitaires ---
 
         private ProxyClient CreateProxyClient()
         {
-            // Centralise la création du client proxy
             var binding = new System.ServiceModel.BasicHttpBinding();
             var address = new System.ServiceModel.EndpointAddress("http://localhost:8090/ProxyCache");
 
-            // --- LA SOLUTION EST ICI ---
-            // On augmente la taille max des messages (ex: 2 Mo au lieu de 64 Ko)
-            binding.MaxReceivedMessageSize = 2097152; // 2 * 1024 * 1024
-
-            // Il peut aussi être utile d'augmenter la taille du buffer
+            binding.MaxReceivedMessageSize = 2097152; 
             binding.MaxBufferSize = 2097152;
 
             return new ProxyClient(binding, address);
@@ -347,8 +317,32 @@ namespace GPSserver
 
         private string CreateErrorResponse(string message)
         {
+            AddCorsHeaders(); // <--- AJOUTEZ CETTE LIGNE
             // Standardise les messages d'erreur en JSON
             return JsonConvert.SerializeObject(new { error = message });
+        }
+
+        public void HandleCorsPreflight()
+        {
+            // Cette méthode est juste là pour intercepter l'appel OPTIONS.
+            // On ajoute les en-têtes nécessaires.
+            AddCorsHeaders();
+        }
+
+        // --- 3. NOUVELLE MÉTHODE HELPER POUR AJOUTER LES EN-TÊTES ---
+        private void AddCorsHeaders()
+        {
+            // Le "WebOperationContext" permet de manipuler la réponse HTTP
+            if (WebOperationContext.Current != null)
+            {
+                var headers = WebOperationContext.Current.OutgoingResponse.Headers;
+                // C'est l'en-tête MAGIQUE. Il dit "J'autorise tout le monde".
+                headers.Add("Access-Control-Allow-Origin", "*");
+                // Permet les méthodes GET (votre itinéraire) et OPTIONS (le pré-vol)
+                headers.Add("Access-Control-Allow-Methods", "GET, OPTIONS");
+                // Autorise certains en-têtes
+                headers.Add("Access-Control-Allow-Headers", "Content-Type");
+            }
         }
     }
 }

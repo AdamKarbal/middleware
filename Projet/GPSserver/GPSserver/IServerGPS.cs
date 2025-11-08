@@ -33,5 +33,9 @@ namespace GPSserver
                    BodyStyle = WebMessageBodyStyle.Bare,
                    ResponseFormat = WebMessageFormat.Json)]
         string FindItinerary(string fromLat, string fromLon, string toLat, string toLon);
+
+        [OperationContract]
+        [WebInvoke(Method = "OPTIONS", UriTemplate = "*")]
+        void HandleCorsPreflight();
     }
 }

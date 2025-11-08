@@ -94,6 +94,12 @@ footer {
   z-index: 100;
 }
 
+#map {
+  height: 500px;
+  width: 100%;
+  border-radius: 12px;
+}
+
 @media (max-width: 900px) {
   .page-container {
     flex-direction: column;

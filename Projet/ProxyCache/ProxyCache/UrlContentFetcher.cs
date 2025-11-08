@@ -23,6 +23,7 @@ namespace ProxyCache
             {
                 using (WebClient client = new WebClient())
                 {
+                    client.Encoding = Encoding.UTF8;
                     Content = client.DownloadString(UrlToFetch);
                 }
             }
