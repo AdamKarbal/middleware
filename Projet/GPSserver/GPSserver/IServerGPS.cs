@@ -34,14 +34,11 @@ namespace GPSserver
                    UriTemplate = "itinerary?fromLat={fromLat}&fromLon={fromLon}&toLat={toLat}&toLon={toLon}",
                    BodyStyle = WebMessageBodyStyle.Bare,
                    ResponseFormat = WebMessageFormat.Json)]
-<<<<<<< HEAD
-        string FindItinerary(string fromLat, string fromLon, string toLat, string toLon);
+        ItineraryResponse FindItinerary(string fromLat, string fromLon, string toLat, string toLon);
 
         [OperationContract]
         [WebInvoke(Method = "OPTIONS", UriTemplate = "*")]
         void HandleCorsPreflight();
-=======
-        ItineraryResponse FindItinerary(string fromLat, string fromLon, string toLat, string toLon);
->>>>>>> 10bda060fba9814d76ed471fe2b26ccd8d9059af
+
     }
 }

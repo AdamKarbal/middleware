@@ -6,21 +6,19 @@ using System.Linq;
 using System.ServiceModel; 
 using System.Text;
 using System.Threading.Tasks;
-<<<<<<< HEAD
 using GPSserver.Models; 
 using Newtonsoft.Json;
 using System.ServiceModel.Web;
-=======
 using GPSserver.Models; // NÉCESSITE LES MODÈLES (voir ci-dessous)
 using Newtonsoft.Json;  // NÉCESSITE LE PACKAGE NUGGET Newtonsoft.Json
 using System.Net;
 using System.ServiceModel.Web;
-using GPSserver.Models;
+using System.ServiceModel.Channels;
 
->>>>>>> 10bda060fba9814d76ed471fe2b26ccd8d9059af
 
 namespace GPSserver
 {
+    [ServiceBehavior(InstanceContextMode = InstanceContextMode.PerCall, ConcurrencyMode = ConcurrencyMode.Multiple)]
     internal class ServerGPS : IServerGPS
     {
         private readonly string _jcKey = Program.JC_KEY;
@@ -61,15 +59,7 @@ namespace GPSserver
                 }
             }
         }
-
-<<<<<<< HEAD
-        public string FindItinerary(string fromLat, string fromLon, string toLat, string toLon)
-=======
-        // ==================================================================
-        // MÉTHODE PRINCIPALE POUR L'ITINÉRAIRE
-        // ==================================================================
         public ItineraryResponse FindItinerary(string fromLat, string fromLon, string toLat, string toLon)
->>>>>>> 10bda060fba9814d76ed471fe2b26ccd8d9059af
         {
             try
             {
@@ -78,53 +68,41 @@ namespace GPSserver
                 double originLon = double.Parse(fromLon, _culture);
                 double destLat = double.Parse(toLat, _culture);
                 double destLon = double.Parse(toLon, _culture);
-
                 var originPos = new Position { Latitude = originLat, Longitude = originLon };
                 var destPos = new Position { Latitude = destLat, Longitude = destLon };
-
                 // 2) Contrat JCDecaux pour la ville d'origine
                 string originCity = GetCityFromGps(originPos);
                 if (string.IsNullOrEmpty(originCity))
                     throw Error("Impossible de déterminer la ville de départ.");
-
                 string contractName = FindContractForCity(originCity);
                 if (string.IsNullOrEmpty(contractName))
                     throw Error($"Aucun contrat JCDecaux n'a été trouvé pour la ville : {originCity}");
-
                 // 3) Itinéraire 100% à pied (référence)
                 var walkOnlyRoute = GetOrsRoute("foot-walking", originPos, destPos);
                 double walkOnlyDuration = walkOnlyRoute.Features.First().Properties.Summary.Duration;
                 double walkOnlyDistance = walkOnlyRoute.Features.First().Properties.Summary.Distance;
-
                 // 4) Stations JCDecaux
                 var stations = GetJcDecauxStations(contractName);
                 if (stations == null || !stations.Any())
                     throw Error($"Aucune station JCDecaux trouvée pour le contrat {contractName}.");
-
                 var startStation = FindClosestStationWithBikes(stations, originPos);
                 var endStation = FindClosestStationWithSpots(stations, destPos);
-
                 if (startStation == null)
                     throw Error("Aucune station avec vélos disponibles près du départ.");
                 if (endStation == null)
                     throw Error("Aucune station avec places libres près de la destination.");
                 if (startStation.Number == endStation.Number)
                     throw Error("La station de départ et d'arrivée est la même. Marcher est plus simple.");
-
                 // 5) Les 3 segments du trajet "vélo"
                 var walkToStart = GetOrsRoute("foot-walking", originPos, startStation.Position);
                 var bikeRoute = GetOrsRoute("cycling-regular", startStation.Position, endStation.Position);
                 var walkToEnd = GetOrsRoute("foot-walking", endStation.Position, destPos);
-
                 var s1 = walkToStart.Features.First().Properties.Summary;
                 var s2 = bikeRoute.Features.First().Properties.Summary;
                 var s3 = walkToEnd.Features.First().Properties.Summary;
-
                 double totalBikeDuration = s1.Duration + s2.Duration + s3.Duration;
                 double totalBikeDistance = s1.Distance + s2.Distance + s3.Distance;
-
                 ItineraryResponse response;
-
                 if (totalBikeDuration < walkOnlyDuration)
                 {
                     // vélo plus rapide
@@ -134,32 +112,32 @@ namespace GPSserver
                         TotalDuration = Math.Round(totalBikeDuration),
                         TotalDistance = Math.Round(totalBikeDistance),
                         Segments = new List<RouteSegment>
-                {
-                    new RouteSegment {
-                        Mode = "walk",
-                        Instructions = $"Marcher jusqu'à la station {startStation.Name} ({startStation.Address})",
-                        Duration = Math.Round(s1.Duration),
-                        Distance = Math.Round(s1.Distance),
-                        Start = originPos,
-                        End   = startStation.Position
-                    },
-                    new RouteSegment {
-                        Mode = "bike",
-                        Instructions = $"Prendre un vélo jusqu'à la station {endStation.Name} ({endStation.Address})",
-                        Duration = Math.Round(s2.Duration),
-                        Distance = Math.Round(s2.Distance),
-                        Start = startStation.Position,
-                        End   = endStation.Position
-                    },
-                    new RouteSegment {
-                        Mode = "walk",
-                        Instructions = "Marcher jusqu'à votre destination finale",
-                        Duration = Math.Round(s3.Duration),
-                        Distance = Math.Round(s3.Distance),
-                        Start = endStation.Position,
-                        End   = destPos
-                    }
-                }
+        {
+            new RouteSegment {
+                Mode = "walk",
+                Instructions = $"Marcher jusqu'à la station {startStation.Name} ({startStation.Address})",
+                Duration = Math.Round(s1.Duration),
+                Distance = Math.Round(s1.Distance),
+                Start = originPos,
+                End   = startStation.Position
+            },
+            new RouteSegment {
+                Mode = "bike",
+                Instructions = $"Prendre un vélo jusqu'à la station {endStation.Name} ({endStation.Address})",
+                Duration = Math.Round(s2.Duration),
+                Distance = Math.Round(s2.Distance),
+                Start = startStation.Position,
+                End   = endStation.Position
+            },
+            new RouteSegment {
+                Mode = "walk",
+                Instructions = "Marcher jusqu'à votre destination finale",
+                Duration = Math.Round(s3.Duration),
+                Distance = Math.Round(s3.Distance),
+                Start = endStation.Position,
+                End   = destPos
+            }
+        }
                     };
                 }
                 else
@@ -171,35 +149,19 @@ namespace GPSserver
                         TotalDuration = Math.Round(walkOnlyDuration),
                         TotalDistance = Math.Round(walkOnlyDistance),
                         Segments = new List<RouteSegment>
-                {
-                    new RouteSegment {
-                        Mode = "walk",
-                        Instructions = "Marcher jusqu'à votre destination",
-                        Duration = Math.Round(walkOnlyDuration),
-                        Distance = Math.Round(walkOnlyDistance),
-                        Start = originPos,
-                        End   = destPos
-                    }
-                }
+        {
+            new RouteSegment {
+                Mode = "walk",
+                Instructions = "Marcher jusqu'à votre destination",
+                Duration = Math.Round(walkOnlyDuration),
+                Distance = Math.Round(walkOnlyDistance),
+                Start = originPos,
+                End   = destPos
+            }
+        }
                     };
                 }
-<<<<<<< HEAD
-                string jsonResponse = JsonConvert.SerializeObject(response, Formatting.Indented);
-                AddCorsHeaders(); 
-                return jsonResponse;
-            }
-            catch (Exception ex)
-            {
-     
-                Exception realError = ex;
-                if (ex is AggregateException && ex.InnerException != null)
-                {
-                    realError = ex.InnerException;
-                }
-                Console.WriteLine("Erreur DÉTAILLÉE dans FindItinerary : \n" + realError.ToString());
-                return CreateErrorResponse(realError.Message);
-=======
-
+                AddCorsHeaders();
                 return response; // <-- IMPORTANT : on retourne l'objet (pas une string)
             }
             catch (WebFaultException<ErrorResponse>)
@@ -212,9 +174,9 @@ namespace GPSserver
                 var real = (ex is AggregateException ae && ae.InnerException != null) ? ae.InnerException : ex;
                 Console.WriteLine("Erreur DÉTAILLÉE dans FindItinerary : \n" + real);
                 throw Error(real.Message); // renvoie { "error": "..."} avec HTTP 400
->>>>>>> 10bda060fba9814d76ed471fe2b26ccd8d9059af
             }
         }
+
 
 
 

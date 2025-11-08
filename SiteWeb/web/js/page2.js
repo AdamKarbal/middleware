@@ -44,29 +44,26 @@ async function startItineraryProcess(startAddress, endAddress) {
     const url = `http://localhost:8000/ServerGPS/itinerary?fromLat=${fromLat}&fromLon=${fromLon}&toLat=${toLat}&toLon=${toLon}`;
 
     const response = await fetch(url);
-    if (!response.ok) {
-      // Gérer les erreurs de réseau (serveur éteint, etc.)
-      throw new Error(`Erreur réseau: ${response.statusText}`);
-    }
+
+    // --- AMÉLIORATION DE LA GESTION D'ERREUR ---
+    // On lit la réponse JSON dans tous les cas
     const data = await response.json();
 
-    if (data.error) {
-      // Gérer les erreurs de votre API (pas de station, etc.)
+    // Si la réponse n'est PAS "ok" (ex: erreur 400 Bad Request)
+    if (!response.ok) {
+      // data contient {"error": "message..."}
       throw new Error(data.error);
     }
+    // Si on arrive ici, c'est un succès (HTTP 200)
 
-    // Sauver la recherche réussie dans localStorage
-    localStorage.setItem("startAddress", startAddress);
-    localStorage.setItem("endAddress", endAddress);
-
-    // d. Afficher les résultats
-    displayInstructions(data.segments);
-    displayMapRoute(data.segments);
+    // d. Afficher les résultats (AVEC LE "S" MAJUSCULE)
+    displayInstructions(data.Segments);
+    displayMapRoute(data.Segments);
 
   } catch (err) {
     console.error("Erreur dans le processus d'itinéraire:", err);
     document.getElementById("details-container").innerHTML = `<p style="color: red;">Erreur: ${err.message}</p>`;
-   }
+  }
 }
 
 // Helper pour géocoder (ne change pas)
