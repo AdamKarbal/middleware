@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="IServerGPS.cs" />
     <Compile Include="Models\enter.cs" />
+    <Compile Include="Models\ErrorResponse.cs" />
     <Compile Include="Models\orsModels.cs" />
     <Compile Include="Models\jcdecauxModels.cs" />
     <Compile Include="Program.cs" />

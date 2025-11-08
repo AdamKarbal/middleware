@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.ServiceModel;
 using System.ServiceModel.Web;
+using GPSserver.Models;
+
 
 namespace GPSserver
 {
@@ -32,6 +34,6 @@ namespace GPSserver
                    UriTemplate = "itinerary?fromLat={fromLat}&fromLon={fromLon}&toLat={toLat}&toLon={toLon}",
                    BodyStyle = WebMessageBodyStyle.Bare,
                    ResponseFormat = WebMessageFormat.Json)]
-        string FindItinerary(string fromLat, string fromLon, string toLat, string toLon);
+        ItineraryResponse FindItinerary(string fromLat, string fromLon, string toLat, string toLon);
     }
 }
