@@ -1,0 +1,80 @@
+# =========================
+# Visual Studio / .NET
+# =========================
+.vs/
+**/bin/
+**/obj/
+[Bb]uild/
+Debug/
+Release/
+x64/
+x86/
+*.user
+*.suo
+*.cache
+*.pdb
+*.ipch
+*.opendb
+*.tlog
+*.lastcodeanalysissucceeded
+
+# MSBuild / tests / logs
+*.log
+TestResult*/
+*.trx
+*.coverage
+*.coveragexml
+
+# DB / local artifacts
+*.dbmdl
+*.mdf
+*.ldf
+
+# Rider / ReSharper / VS Code
+.idea/
+*.iml
+.ReSharper*/
+_TeamCity*
+.vscode/
+
+# =========================
+# IIS Express / Website
+# =========================
+iisexpress/
+.vs/config/applicationhost.config
+
+# Si tu NE veux PAS versionner les Web.config du site :
+SiteWeb/web/Web.config
+SiteWeb/Web.config
+
+# =========================
+# NuGet (packages.config)
+# (on garde packages.config versionné)
+# =========================
+**/packages/
+!**/packages.config
+
+# (si tu génères des .nupkg localement)
+*.nupkg
+
+# =========================
+# Node / Front-end (si utilisé)
+# =========================
+node_modules/
+**/node_modules/
+**/dist/
+**/.cache/
+**/.parcel-cache/
+*.map
+coverage/
+
+# =========================
+# OS
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Git / merges
+# =========================
+*.orig
