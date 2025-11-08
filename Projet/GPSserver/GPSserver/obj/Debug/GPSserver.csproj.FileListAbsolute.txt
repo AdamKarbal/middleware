@@ -19,3 +19,6 @@ C:\Users\adamo\Desktop\SI4\middleware\Projet2\Middleware\Projet\GPSserver\GPSser
 C:\Users\adamo\Desktop\SI4\middleware\Projet2\Middleware\Projet\GPSserver\GPSserver\obj\Debug\GPSserver.csproj.CoreCompileInputs.cache
 C:\Users\adamo\Desktop\SI4\middleware\Projet2\Middleware\Projet\GPSserver\GPSserver\obj\Debug\GPSserver.exe
 C:\Users\adamo\Desktop\SI4\middleware\Projet2\Middleware\Projet\GPSserver\GPSserver\obj\Debug\GPSserver.pdb
+C:\Users\adamo\Desktop\SI4\middleware\Projet2\Middleware\Projet\GPSserver\GPSserver\bin\Debug\Newtonsoft.Json.dll
+C:\Users\adamo\Desktop\SI4\middleware\Projet2\Middleware\Projet\GPSserver\GPSserver\bin\Debug\Newtonsoft.Json.xml
+C:\Users\adamo\Desktop\SI4\middleware\Projet2\Middleware\Projet\GPSserver\GPSserver\obj\Debug\GPSserver.csproj.Up2Date

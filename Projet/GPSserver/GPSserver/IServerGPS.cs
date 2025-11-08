@@ -26,5 +26,12 @@ namespace GPSserver
         [WebInvoke(Method = "GET", UriTemplate = "testContracts",
                    BodyStyle = WebMessageBodyStyle.Bare, ResponseFormat = WebMessageFormat.Json)]
         string TestContracts();
+
+        [OperationContract]
+        [WebInvoke(Method = "GET",
+                   UriTemplate = "itinerary?fromLat={fromLat}&fromLon={fromLon}&toLat={toLat}&toLon={toLon}",
+                   BodyStyle = WebMessageBodyStyle.Bare,
+                   ResponseFormat = WebMessageFormat.Json)]
+        string FindItinerary(string fromLat, string fromLon, string toLat, string toLon);
     }
 }

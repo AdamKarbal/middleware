@@ -8,7 +8,7 @@ namespace GPSserver
     internal class Program
     {
         internal static readonly string JC_KEY = "c2388aa3d552da1e50d5540b501ae4a278082058";
-
+        internal static readonly string OS_KEY = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImU3NTFkMjk3MjQ4MjQwZjJiNDA2ZDI4ZjVhMjIzMmY2IiwiaCI6Im11cm11cjY0In0=";
         static void Main(string[] args)
         {
             Uri baseUrl = new Uri("http://localhost:8000/ServerGPS/");
