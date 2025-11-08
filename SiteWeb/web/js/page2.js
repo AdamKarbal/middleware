@@ -92,18 +92,20 @@ function displayInstructions(segments) {
 }
 
 // Étape 5 : Dessiner la carte (légèrement modifié pour le nettoyage)
+// Étape 5 : Dessiner la carte (CORRIGÉE)
 function displayMapRoute(segments) {
   let allCoords = [];
   segments.forEach(segment => {
-    const startCoords = [segment.Start.latitude, segment.Start.longitude];
-    const endCoords = [segment.End.latitude, segment.End.longitude];
+    // === CORRECTION ICI : "L" majuscule ===
+    const startCoords = [segment.Start.Latitude, segment.Start.Longitude];
+    const endCoords = [segment.End.Latitude, segment.End.Longitude];
+
     allCoords.push(startCoords);
     allCoords.push(endCoords);
 
     let color = (segment.Mode === 'walk') ? 'blue' : 'green';
     let dash = (segment.Mode === 'walk') ? '5, 5' : null;
 
-    // On ajoute les lignes au tableau pour pouvoir les supprimer plus tard
     const polyline = L.polyline([startCoords, endCoords], {
       color: color,
       dashArray: dash
@@ -112,7 +114,6 @@ function displayMapRoute(segments) {
     polyline.addTo(map);
   });
 
-  // On ajoute aussi les marqueurs au tableau
   const startMarker = L.marker(allCoords[0]).bindPopup('Départ');
   const endMarker = L.marker(allCoords[allCoords.length - 1]).bindPopup('Arrivée');
   currentMapLayers.push(startMarker);
@@ -122,6 +123,7 @@ function displayMapRoute(segments) {
 
   map.fitBounds(allCoords); // Centre la carte
 }
+
 
 // --- ÉTAPE 6 : Le chef d'orchestre (MODIFIÉ) ---
 document.addEventListener('DOMContentLoaded', () => {

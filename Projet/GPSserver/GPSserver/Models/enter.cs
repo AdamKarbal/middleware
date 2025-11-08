@@ -11,6 +11,7 @@ namespace GPSserver.Models
     }
 
     public class RouteSegment
+
     {
         public string Mode { get; set; } // "walk", "bike"
         public string Instructions { get; set; }

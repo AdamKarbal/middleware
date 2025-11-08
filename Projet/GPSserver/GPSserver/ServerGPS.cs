@@ -24,10 +24,12 @@ namespace GPSserver
         private readonly string _jcKey = Program.JC_KEY;
         private readonly string _orsKey = Program.OS_KEY;
 
-        private static WebFaultException<ErrorResponse> Error(string message) =>
-            new WebFaultException<ErrorResponse>(
+        private static WebFaultException<ErrorResponse> Error(string message)
+        {
+            AddCorsHeaders(); // <- LA SOLUTION
+            return new WebFaultException<ErrorResponse>(
                 new ErrorResponse { error = message }, HttpStatusCode.BadRequest);
-
+        }
 
 
         // Culture invariable pour s'assurer que les "." sont utilisés pour les décimales
@@ -315,7 +317,7 @@ namespace GPSserver
         }
 
         // --- 3. NOUVELLE MÉTHODE HELPER POUR AJOUTER LES EN-TÊTES ---
-        private void AddCorsHeaders()
+        private static void AddCorsHeaders()
         {
             // Le "WebOperationContext" permet de manipuler la réponse HTTP
             if (WebOperationContext.Current != null)
