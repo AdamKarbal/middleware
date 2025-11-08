@@ -6,9 +6,18 @@ using System.Linq;
 using System.ServiceModel; 
 using System.Text;
 using System.Threading.Tasks;
+<<<<<<< HEAD
 using GPSserver.Models; 
 using Newtonsoft.Json;
 using System.ServiceModel.Web;
+=======
+using GPSserver.Models; // NÉCESSITE LES MODÈLES (voir ci-dessous)
+using Newtonsoft.Json;  // NÉCESSITE LE PACKAGE NUGGET Newtonsoft.Json
+using System.Net;
+using System.ServiceModel.Web;
+using GPSserver.Models;
+
+>>>>>>> 10bda060fba9814d76ed471fe2b26ccd8d9059af
 
 namespace GPSserver
 {
@@ -16,6 +25,12 @@ namespace GPSserver
     {
         private readonly string _jcKey = Program.JC_KEY;
         private readonly string _orsKey = Program.OS_KEY;
+
+        private static WebFaultException<ErrorResponse> Error(string message) =>
+            new WebFaultException<ErrorResponse>(
+                new ErrorResponse { error = message }, HttpStatusCode.BadRequest);
+
+
 
         // Culture invariable pour s'assurer que les "." sont utilisés pour les décimales
         private readonly CultureInfo _culture = CultureInfo.InvariantCulture;
@@ -47,135 +62,128 @@ namespace GPSserver
             }
         }
 
+<<<<<<< HEAD
         public string FindItinerary(string fromLat, string fromLon, string toLat, string toLon)
+=======
+        // ==================================================================
+        // MÉTHODE PRINCIPALE POUR L'ITINÉRAIRE
+        // ==================================================================
+        public ItineraryResponse FindItinerary(string fromLat, string fromLon, string toLat, string toLon)
+>>>>>>> 10bda060fba9814d76ed471fe2b26ccd8d9059af
         {
             try
             {
-                // 1. Conversion des coordonnées
+                // 1) Parse coordonnées
                 double originLat = double.Parse(fromLat, _culture);
                 double originLon = double.Parse(fromLon, _culture);
                 double destLat = double.Parse(toLat, _culture);
                 double destLon = double.Parse(toLon, _culture);
 
-                Position originPos = new Position { Latitude = originLat, Longitude = originLon };
-                Position destPos = new Position { Latitude = destLat, Longitude = destLon };
+                var originPos = new Position { Latitude = originLat, Longitude = originLon };
+                var destPos = new Position { Latitude = destLat, Longitude = destLon };
 
-                // 2. Trouver la ville et le contrat JCDecaux
+                // 2) Contrat JCDecaux pour la ville d'origine
                 string originCity = GetCityFromGps(originPos);
                 if (string.IsNullOrEmpty(originCity))
-                {
-                    return CreateErrorResponse("Impossible de déterminer la ville de départ.");
-                }
+                    throw Error("Impossible de déterminer la ville de départ.");
 
                 string contractName = FindContractForCity(originCity);
                 if (string.IsNullOrEmpty(contractName))
-                {
-                    return CreateErrorResponse($"Aucun contrat JCDecaux n'a été trouvé pour la ville : {originCity}");
-                }
-                Console.WriteLine($"Contrat trouvé : {contractName}");
+                    throw Error($"Aucun contrat JCDecaux n'a été trouvé pour la ville : {originCity}");
 
-                // 3. Obtenir le trajet à pied (pour comparer)
-                OrsResponse walkOnlyRoute = GetOrsRoute("foot-walking", originPos, destPos);
+                // 3) Itinéraire 100% à pied (référence)
+                var walkOnlyRoute = GetOrsRoute("foot-walking", originPos, destPos);
                 double walkOnlyDuration = walkOnlyRoute.Features.First().Properties.Summary.Duration;
                 double walkOnlyDistance = walkOnlyRoute.Features.First().Properties.Summary.Distance;
 
-                // 4. Obtenir les stations JCDecaux (en utilisant le contrat trouvé)
-                List<Station> stations = GetJcDecauxStations(contractName);
+                // 4) Stations JCDecaux
+                var stations = GetJcDecauxStations(contractName);
                 if (stations == null || !stations.Any())
-                {
-                    return CreateErrorResponse($"Aucune station JCDecaux n'a été trouvée pour le contrat {contractName}.");
-                }
+                    throw Error($"Aucune station JCDecaux trouvée pour le contrat {contractName}.");
 
-                // 5. Trouver les stations pertinentes
-                Station startStation = FindClosestStationWithBikes(stations, originPos);
-                Station endStation = FindClosestStationWithSpots(stations, destPos);
+                var startStation = FindClosestStationWithBikes(stations, originPos);
+                var endStation = FindClosestStationWithSpots(stations, destPos);
 
                 if (startStation == null)
-                {
-                    return CreateErrorResponse("Aucune station avec des vélos disponibles n'a été trouvée à proximité du départ.");
-                }
+                    throw Error("Aucune station avec vélos disponibles près du départ.");
                 if (endStation == null)
-                {
-                    return CreateErrorResponse("Aucune station avec des places libres n'a été trouvée à proximité de la destination.");
-                }
+                    throw Error("Aucune station avec places libres près de la destination.");
                 if (startStation.Number == endStation.Number)
-                {
-                    return CreateErrorResponse("La station de départ et d'arrivée est la même. Marcher est plus simple.");
-                }
+                    throw Error("La station de départ et d'arrivée est la même. Marcher est plus simple.");
 
-                // 6. Obtenir les 3 segments du trajet vélo
-                OrsResponse walkToStartStation = GetOrsRoute("foot-walking", originPos, startStation.Position);
-                OrsResponse bikeRoute = GetOrsRoute("cycling-regular", startStation.Position, endStation.Position);
-                OrsResponse walkToEnd = GetOrsRoute("foot-walking", endStation.Position, destPos);
+                // 5) Les 3 segments du trajet "vélo"
+                var walkToStart = GetOrsRoute("foot-walking", originPos, startStation.Position);
+                var bikeRoute = GetOrsRoute("cycling-regular", startStation.Position, endStation.Position);
+                var walkToEnd = GetOrsRoute("foot-walking", endStation.Position, destPos);
 
-                // 7. Calculer la durée et distance totales du trajet vélo
-                Summary walkToStartSummary = walkToStartStation.Features.First().Properties.Summary;
-                Summary bikeSummary = bikeRoute.Features.First().Properties.Summary;
-                Summary walkToEndSummary = walkToEnd.Features.First().Properties.Summary;
+                var s1 = walkToStart.Features.First().Properties.Summary;
+                var s2 = bikeRoute.Features.First().Properties.Summary;
+                var s3 = walkToEnd.Features.First().Properties.Summary;
 
-                double totalBikeRouteDuration = walkToStartSummary.Duration + bikeSummary.Duration + walkToEndSummary.Duration;
-                double totalBikeRouteDistance = walkToStartSummary.Distance + bikeSummary.Distance + walkToEndSummary.Distance;
+                double totalBikeDuration = s1.Duration + s2.Duration + s3.Duration;
+                double totalBikeDistance = s1.Distance + s2.Distance + s3.Distance;
 
-                // 8. Comparer et construire la réponse
                 ItineraryResponse response;
-                if (totalBikeRouteDuration < walkOnlyDuration)
+
+                if (totalBikeDuration < walkOnlyDuration)
                 {
-                    // Le vélo EST plus rapide
+                    // vélo plus rapide
                     response = new ItineraryResponse
                     {
                         Type = "BIKE_ROUTE",
-                        TotalDuration = Math.Round(totalBikeRouteDuration),
-                        TotalDistance = Math.Round(totalBikeRouteDistance),
+                        TotalDuration = Math.Round(totalBikeDuration),
+                        TotalDistance = Math.Round(totalBikeDistance),
                         Segments = new List<RouteSegment>
-                        {
-                            new RouteSegment {
-                                Mode = "walk",
-                                Instructions = $"Marcher jusqu'à la station {startStation.Name} ({startStation.Address})",
-                                Duration = Math.Round(walkToStartSummary.Duration),
-                                Distance = Math.Round(walkToStartSummary.Distance),
-                                Start = originPos,
-                                End = startStation.Position
-                            },
-                            new RouteSegment {
-                                Mode = "bike",
-                                Instructions = $"Prendre un vélo jusqu'à la station {endStation.Name} ({endStation.Address})",
-                                Duration = Math.Round(bikeSummary.Duration),
-                                Distance = Math.Round(bikeSummary.Distance),
-                                Start = startStation.Position,
-                                End = endStation.Position
-                            },
-                            new RouteSegment {
-                                Mode = "walk",
-                                Instructions = "Marcher jusqu'à votre destination finale",
-                                Duration = Math.Round(walkToEndSummary.Duration),
-                                Distance = Math.Round(walkToEndSummary.Distance),
-                                Start = endStation.Position,
-                                End = destPos
-                            }
-                        }
+                {
+                    new RouteSegment {
+                        Mode = "walk",
+                        Instructions = $"Marcher jusqu'à la station {startStation.Name} ({startStation.Address})",
+                        Duration = Math.Round(s1.Duration),
+                        Distance = Math.Round(s1.Distance),
+                        Start = originPos,
+                        End   = startStation.Position
+                    },
+                    new RouteSegment {
+                        Mode = "bike",
+                        Instructions = $"Prendre un vélo jusqu'à la station {endStation.Name} ({endStation.Address})",
+                        Duration = Math.Round(s2.Duration),
+                        Distance = Math.Round(s2.Distance),
+                        Start = startStation.Position,
+                        End   = endStation.Position
+                    },
+                    new RouteSegment {
+                        Mode = "walk",
+                        Instructions = "Marcher jusqu'à votre destination finale",
+                        Duration = Math.Round(s3.Duration),
+                        Distance = Math.Round(s3.Distance),
+                        Start = endStation.Position,
+                        End   = destPos
+                    }
+                }
                     };
                 }
                 else
                 {
-                    // La marche EST plus rapide (ou équivalente)
+                    // marche plus rapide (ou équivalente)
                     response = new ItineraryResponse
                     {
                         Type = "WALK",
                         TotalDuration = Math.Round(walkOnlyDuration),
                         TotalDistance = Math.Round(walkOnlyDistance),
                         Segments = new List<RouteSegment>
-                        {
-                            new RouteSegment {
-                                Mode = "walk",
-                                Instructions = "Marcher jusqu'à votre destination",
-                                Duration = Math.Round(walkOnlyDuration),
-                                Distance = Math.Round(walkOnlyDistance),
-                                Start = originPos,
-                                End = destPos
-                            }
-                        }
+                {
+                    new RouteSegment {
+                        Mode = "walk",
+                        Instructions = "Marcher jusqu'à votre destination",
+                        Duration = Math.Round(walkOnlyDuration),
+                        Distance = Math.Round(walkOnlyDistance),
+                        Start = originPos,
+                        End   = destPos
+                    }
+                }
                     };
                 }
+<<<<<<< HEAD
                 string jsonResponse = JsonConvert.SerializeObject(response, Formatting.Indented);
                 AddCorsHeaders(); 
                 return jsonResponse;
@@ -190,6 +198,21 @@ namespace GPSserver
                 }
                 Console.WriteLine("Erreur DÉTAILLÉE dans FindItinerary : \n" + realError.ToString());
                 return CreateErrorResponse(realError.Message);
+=======
+
+                return response; // <-- IMPORTANT : on retourne l'objet (pas une string)
+            }
+            catch (WebFaultException<ErrorResponse>)
+            {
+                // nos erreurs "métier" (400) → on les laisse passer
+                throw;
+            }
+            catch (Exception ex)
+            {
+                var real = (ex is AggregateException ae && ae.InnerException != null) ? ae.InnerException : ex;
+                Console.WriteLine("Erreur DÉTAILLÉE dans FindItinerary : \n" + real);
+                throw Error(real.Message); // renvoie { "error": "..."} avec HTTP 400
+>>>>>>> 10bda060fba9814d76ed471fe2b26ccd8d9059af
             }
         }
 
