@@ -81,14 +81,16 @@ namespace GPSserver
                     throw Error($"Aucun contrat JCDecaux n'a été trouvé pour la ville : {originCity}");
                 // 3) Itinéraire 100% à pied (référence)
                 var walkOnlyRoute = GetOrsRoute("foot-walking", originPos, destPos);
-                double walkOnlyDuration = walkOnlyRoute.Features.First().Properties.Summary.Duration;
-                double walkOnlyDistance = walkOnlyRoute.Features.First().Properties.Summary.Distance;
+                double walkOnlyDuration = walkOnlyRoute.Routes.First().Summary.Duration;
+                double walkOnlyDistance = walkOnlyRoute.Routes.First().Summary.Distance;
                 // 4) Stations JCDecaux
                 var stations = GetJcDecauxStations(contractName);
                 if (stations == null || !stations.Any())
                     throw Error($"Aucune station JCDecaux trouvée pour le contrat {contractName}.");
                 var startStation = FindClosestStationWithBikes(stations, originPos);
                 var endStation = FindClosestStationWithSpots(stations, destPos);
+                Console.WriteLine($"[STATIONS DEBUG] Start: {startStation?.Name ?? "AUCUNE"} - Bikes dispo: {startStation?.TotalStands?.Availabilities?.Bikes}");
+                Console.WriteLine($"[STATIONS DEBUG] End:   {endStation?.Name ?? "AUCUNE"} - Places dispo: {endStation?.TotalStands?.Availabilities?.Stands}");
                 if (startStation == null)
                     throw Error("Aucune station avec vélos disponibles près du départ.");
                 if (endStation == null)
@@ -99,9 +101,14 @@ namespace GPSserver
                 var walkToStart = GetOrsRoute("foot-walking", originPos, startStation.Position);
                 var bikeRoute = GetOrsRoute("cycling-regular", startStation.Position, endStation.Position);
                 var walkToEnd = GetOrsRoute("foot-walking", endStation.Position, destPos);
-                var s1 = walkToStart.Features.First().Properties.Summary;
-                var s2 = bikeRoute.Features.First().Properties.Summary;
-                var s3 = walkToEnd.Features.First().Properties.Summary;
+                // --- Décodage des tracés ORS (geometry) ---
+                var walk1Path = DecodePolyline(walkToStart.Routes.First().Geometry);
+                var bikePath = DecodePolyline(bikeRoute.Routes.First().Geometry);
+                var walk2Path = DecodePolyline(walkToEnd.Routes.First().Geometry);
+
+                var s1 = walkToStart.Routes.First().Summary;
+                var s2 = bikeRoute.Routes.First().Summary;
+                var s3 = walkToEnd.Routes.First().Summary;
                 double totalBikeDuration = s1.Duration + s2.Duration + s3.Duration;
                 double totalBikeDistance = s1.Distance + s2.Distance + s3.Distance;
                 ItineraryResponse response;
@@ -114,6 +121,7 @@ namespace GPSserver
                         TotalDuration = Math.Round(totalBikeDuration),
                         TotalDistance = Math.Round(totalBikeDistance),
                         Segments = new List<RouteSegment>
+
         {
             new RouteSegment {
                 Mode = "walk",
@@ -125,7 +133,11 @@ namespace GPSserver
             },
             new RouteSegment {
                 Mode = "bike",
-                Instructions = $"Prendre un vélo jusqu'à la station {endStation.Name} ({endStation.Address})",
+                Instructions = string.Join(" → ", bikeRoute.Routes
+                    .SelectMany(r => r.Segments)
+                    .SelectMany(s => s.Steps)
+                    .Select(st => st.Instruction))
+                    ?? $"Prendre un vélo jusqu'à la station {endStation.Name} ({endStation.Address})",
                 Duration = Math.Round(s2.Duration),
                 Distance = Math.Round(s2.Distance),
                 Start = startStation.Position,
@@ -133,7 +145,12 @@ namespace GPSserver
             },
             new RouteSegment {
                 Mode = "walk",
-                Instructions = "Marcher jusqu'à votre destination finale",
+                Instructions = string.Join(" → ", walkToEnd.Routes
+                    .SelectMany(r => r.Segments)
+                    .SelectMany(s => s.Steps)
+                    .Select(st => st.Instruction))
+                    ?? "Marcher jusqu'à votre destination finale",
+
                 Duration = Math.Round(s3.Duration),
                 Distance = Math.Round(s3.Distance),
                 Start = endStation.Position,
@@ -163,7 +180,14 @@ namespace GPSserver
         }
                     };
                 }
+                response.Polyline = new List<Position>();
+                response.Polyline.AddRange(walk1Path);
+                response.Polyline.AddRange(bikePath);
+                response.Polyline.AddRange(walk2Path);
                 AddCorsHeaders();
+                Console.WriteLine("=== DEBUG JSON RENVOYÉ ===");
+                Console.WriteLine(JsonConvert.SerializeObject(response, Formatting.Indented));
+
                 return response; // <-- IMPORTANT : on retourne l'objet (pas une string)
             }
             catch (WebFaultException<ErrorResponse>)
@@ -211,7 +235,8 @@ namespace GPSserver
                         string.Equals(c.Name, cityName, StringComparison.OrdinalIgnoreCase) ||
                         (c.Cities != null && c.Cities.Contains(cityName, StringComparer.OrdinalIgnoreCase))
                     );
-
+                Console.WriteLine($"[JCDECAUX DEBUG] City from ORS: {cityName}");
+                Console.WriteLine($"[JCDECAUX DEBUG] Matched contract: {foundContract?.Name ?? "AUCUN"}");
                 return foundContract?.Name;
             }
         }
@@ -235,17 +260,47 @@ namespace GPSserver
 
         private OrsResponse GetOrsRoute(string profile, Position start, Position end)
         {
-            string startCoord = $"{start.Longitude.ToString(_culture)},{start.Latitude.ToString(_culture)}";
-            string endCoord = $"{end.Longitude.ToString(_culture)},{end.Latitude.ToString(_culture)}";
+            string url = $"https://api.openrouteservice.org/v2/directions/{profile}";
+            string body = $"{{\"coordinates\":[[{start.Longitude.ToString(_culture)},{start.Latitude.ToString(_culture)}],[{end.Longitude.ToString(_culture)},{end.Latitude.ToString(_culture)}]]}}";
 
-            string url = $"https://api.openrouteservice.org/v2/directions/{profile}?api_key={_orsKey}&start={startCoord}&end={endCoord}";
-
-            using (var proxy = CreateProxyClient())
+            using (var client = new WebClient())
             {
-                string jsonResponse = proxy.GetWithTtlAsync(url, 3600).Result;
-                return JsonConvert.DeserializeObject<OrsResponse>(jsonResponse);
+                client.Encoding = Encoding.UTF8;
+                client.Headers[HttpRequestHeader.ContentType] = "application/json";
+                client.Headers.Add("Authorization", $"Bearer {_orsKey}");
+
+                try
+                {
+                    Console.WriteLine($"[ORS DEBUG] POST {url}");
+                    Console.WriteLine($"[ORS DEBUG] Body: {body}");
+
+                    string jsonResponse = client.UploadString(url, "POST", body);
+
+                    // Log juste un bout du résultat pour vérifier que c’est du JSON
+                    Console.WriteLine($"[ORS DEBUG] Response: {jsonResponse.Substring(0, Math.Min(120, jsonResponse.Length))}...");
+
+                    return JsonConvert.DeserializeObject<OrsResponse>(jsonResponse);
+                }
+                catch (WebException ex)
+                {
+                    if (ex.Response != null)
+                    {
+                        using (var reader = new System.IO.StreamReader(ex.Response.GetResponseStream()))
+                        {
+                            string errorResponse = reader.ReadToEnd();
+                            Console.WriteLine("[ORS ERROR] " + errorResponse);
+                            throw Error("Erreur ORS: " + errorResponse);
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("[ORS ERROR] " + ex.Message);
+                        throw Error("Erreur ORS: " + ex.Message);
+                    }
+                }
             }
         }
+
 
 
         private Station FindClosestStationWithBikes(List<Station> stations, Position origin)
@@ -331,5 +386,45 @@ namespace GPSserver
                 headers.Add("Access-Control-Allow-Headers", "Content-Type");
             }
         }
+        private List<Position> DecodePolyline(string encoded)
+        {
+            var poly = new List<Position>();
+            int index = 0, len = encoded.Length;
+            int lat = 0, lon = 0;
+
+            while (index < len)
+            {
+                int b, shift = 0, result = 0;
+                do
+                {
+                    b = encoded[index++] - 63;
+                    result |= (b & 0x1f) << shift;
+                    shift += 5;
+                } while (b >= 0x20);
+                int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+                lat += dlat;
+
+                shift = 0;
+                result = 0;
+                do
+                {
+                    b = encoded[index++] - 63;
+                    result |= (b & 0x1f) << shift;
+                    shift += 5;
+                } while (b >= 0x20);
+                int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+                lon += dlng;
+
+                Position p = new Position
+                {
+                    Latitude = lat / 1E5,
+                    Longitude = lon / 1E5
+                };
+                poly.Add(p);
+            }
+
+            return poly;
+        }
+
     }
 }

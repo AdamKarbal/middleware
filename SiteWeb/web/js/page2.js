@@ -58,7 +58,15 @@ async function startItineraryProcess(startAddress, endAddress) {
 
     // d. Afficher les résultats (AVEC LE "S" MAJUSCULE)
     displayInstructions(data.Segments);
-    displayMapRoute(data.Segments);
+
+    // Si le backend renvoie une vraie liste de coordonnées "Polyline"
+    if (data.Polyline && data.Polyline.length > 0) {
+      displayMapPolyline(data.Polyline);
+    } else {
+      // fallback (ancienne méthode, lignes droites)
+      displayMapRoute(data.Segments);
+    }
+
 
   } catch (err) {
     console.error("Erreur dans le processus d'itinéraire:", err);
@@ -123,6 +131,37 @@ function displayMapRoute(segments) {
 
   map.fitBounds(allCoords); // Centre la carte
 }
+function displayMapPolyline(polylineCoords) {
+  // Nettoyer les anciens tracés
+  clearMap();
+
+  // Convertir le format [{latitude, longitude}, ...] en [[lat, lon], ...]
+  const routePoints = polylineCoords.map(p => [p.Latitude, p.Longitude]);
+
+  // Créer la polyline Leaflet
+  const routeLine = L.polyline(routePoints, {
+    color: 'blue',
+    weight: 4
+  });
+
+  // Ajouter sur la carte
+  routeLine.addTo(map);
+  currentMapLayers.push(routeLine);
+
+  // Marqueurs départ/arrivée
+  if (routePoints.length > 1) {
+    const startMarker = L.marker(routePoints[0]).bindPopup('Départ');
+    const endMarker = L.marker(routePoints[routePoints.length - 1]).bindPopup('Arrivée');
+    startMarker.addTo(map);
+    endMarker.addTo(map);
+    currentMapLayers.push(startMarker);
+    currentMapLayers.push(endMarker);
+  }
+
+  // Centrer la carte sur l'itinéraire
+  map.fitBounds(routeLine.getBounds());
+}
+
 
 
 // --- ÉTAPE 6 : Le chef d'orchestre (MODIFIÉ) ---
