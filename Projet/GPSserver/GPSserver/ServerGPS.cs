@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 using GPSserver.Models; 
 using Newtonsoft.Json;
 using System.ServiceModel.Web;
-using GPSserver.Models; // NÉCESSITE LES MODÈLES (voir ci-dessous)
-using Newtonsoft.Json;  // NÉCESSITE LE PACKAGE NUGGET Newtonsoft.Json
+using GPSserver.Models; 
+using Newtonsoft.Json;  
 using System.Net;
 using System.ServiceModel.Web;
 using System.ServiceModel.Channels;
@@ -26,13 +26,11 @@ namespace GPSserver
 
         private static WebFaultException<ErrorResponse> Error(string message)
         {
-            AddCorsHeaders(); // <- LA SOLUTION
+            AddCorsHeaders(); 
             return new WebFaultException<ErrorResponse>(
                 new ErrorResponse { error = message }, HttpStatusCode.BadRequest);
         }
 
-
-        // Culture invariable pour s'assurer que les "." sont utilisés pour les décimales
         private readonly CultureInfo _culture = CultureInfo.InvariantCulture;
 
         public String echoGPS(String lat, String lon)
@@ -65,43 +63,48 @@ namespace GPSserver
         {
             try
             {
-                // 1) Parse coordonnées
                 double originLat = double.Parse(fromLat, _culture);
                 double originLon = double.Parse(fromLon, _culture);
                 double destLat = double.Parse(toLat, _culture);
                 double destLon = double.Parse(toLon, _culture);
+
                 var originPos = new Position { Latitude = originLat, Longitude = originLon };
                 var destPos = new Position { Latitude = destLat, Longitude = destLon };
-                // 2) Contrat JCDecaux pour la ville d'origine
+
                 string originCity = GetCityFromGps(originPos);
                 if (string.IsNullOrEmpty(originCity))
                     throw Error("Impossible de déterminer la ville de départ.");
+
                 string contractName = FindContractForCity(originCity);
                 if (string.IsNullOrEmpty(contractName))
                     throw Error($"Aucun contrat JCDecaux n'a été trouvé pour la ville : {originCity}");
-                // 3) Itinéraire 100% à pied (référence)
+
+                // A PIED SEULEMENT
                 var walkOnlyRoute = GetOrsRoute("foot-walking", originPos, destPos);
                 double walkOnlyDuration = walkOnlyRoute.Routes.First().Summary.Duration;
                 double walkOnlyDistance = walkOnlyRoute.Routes.First().Summary.Distance;
-                // 4) Stations JCDecaux
+
+                // JCDECAUX
                 var stations = GetJcDecauxStations(contractName);
                 if (stations == null || !stations.Any())
                     throw Error($"Aucune station JCDecaux trouvée pour le contrat {contractName}.");
+
                 var startStation = FindClosestStationWithBikes(stations, originPos);
                 var endStation = FindClosestStationWithSpots(stations, destPos);
-                Console.WriteLine($"[STATIONS DEBUG] Start: {startStation?.Name ?? "AUCUNE"} - Bikes dispo: {startStation?.TotalStands?.Availabilities?.Bikes}");
-                Console.WriteLine($"[STATIONS DEBUG] End:   {endStation?.Name ?? "AUCUNE"} - Places dispo: {endStation?.TotalStands?.Availabilities?.Stands}");
+                Console.WriteLine($" Start: {startStation?.Name ?? "AUCUNE"} - Bikes dispo: {startStation?.TotalStands?.Availabilities?.Bikes}");
+                Console.WriteLine($" End:   {endStation?.Name ?? "AUCUNE"} - Places dispo: {endStation?.TotalStands?.Availabilities?.Stands}");
                 if (startStation == null)
                     throw Error("Aucune station avec vélos disponibles près du départ.");
                 if (endStation == null)
                     throw Error("Aucune station avec places libres près de la destination.");
                 if (startStation.Number == endStation.Number)
                     throw Error("La station de départ et d'arrivée est la même. Marcher est plus simple.");
-                // 5) Les 3 segments du trajet "vélo"
+
+                // TRAJET A PIED + VELO + A PIED
                 var walkToStart = GetOrsRoute("foot-walking", originPos, startStation.Position);
                 var bikeRoute = GetOrsRoute("cycling-regular", startStation.Position, endStation.Position);
                 var walkToEnd = GetOrsRoute("foot-walking", endStation.Position, destPos);
-                // --- Décodage des tracés ORS (geometry) ---
+
                 var walk1Path = DecodePolyline(walkToStart.Routes.First().Geometry);
                 var bikePath = DecodePolyline(bikeRoute.Routes.First().Geometry);
                 var walk2Path = DecodePolyline(walkToEnd.Routes.First().Geometry);
@@ -114,7 +117,6 @@ namespace GPSserver
                 ItineraryResponse response;
                 if (totalBikeDuration < walkOnlyDuration)
                 {
-                    // vélo plus rapide
                     response = new ItineraryResponse
                     {
                         Type = "BIKE_ROUTE",
@@ -161,7 +163,6 @@ namespace GPSserver
                 }
                 else
                 {
-                    // marche plus rapide (ou équivalente)
                     response = new ItineraryResponse
                     {
                         Type = "WALK",
@@ -185,10 +186,9 @@ namespace GPSserver
                 response.Polyline.AddRange(bikePath);
                 response.Polyline.AddRange(walk2Path);
                 AddCorsHeaders();
-                Console.WriteLine("=== DEBUG JSON RENVOYÉ ===");
                 Console.WriteLine(JsonConvert.SerializeObject(response, Formatting.Indented));
 
-                return response; // <-- IMPORTANT : on retourne l'objet (pas une string)
+                return response; 
             }
             catch (WebFaultException<ErrorResponse>)
             {
@@ -235,8 +235,8 @@ namespace GPSserver
                         string.Equals(c.Name, cityName, StringComparison.OrdinalIgnoreCase) ||
                         (c.Cities != null && c.Cities.Contains(cityName, StringComparer.OrdinalIgnoreCase))
                     );
-                Console.WriteLine($"[JCDECAUX DEBUG] City from ORS: {cityName}");
-                Console.WriteLine($"[JCDECAUX DEBUG] Matched contract: {foundContract?.Name ?? "AUCUN"}");
+                Console.WriteLine($" City from ORS: {cityName}");
+                Console.WriteLine($" Matched contract: {foundContract?.Name ?? "AUCUN"}");
                 return foundContract?.Name;
             }
         }
@@ -275,8 +275,6 @@ namespace GPSserver
                     Console.WriteLine($"[ORS DEBUG] Body: {body}");
 
                     string jsonResponse = client.UploadString(url, "POST", body);
-
-                    // Log juste un bout du résultat pour vérifier que c’est du JSON
                     Console.WriteLine($"[ORS DEBUG] Response: {jsonResponse.Substring(0, Math.Min(120, jsonResponse.Length))}...");
 
                     return JsonConvert.DeserializeObject<OrsResponse>(jsonResponse);
@@ -359,30 +357,22 @@ namespace GPSserver
 
         private string CreateErrorResponse(string message)
         {
-            AddCorsHeaders(); // <--- AJOUTEZ CETTE LIGNE
-            // Standardise les messages d'erreur en JSON
+            AddCorsHeaders();
             return JsonConvert.SerializeObject(new { error = message });
         }
 
         public void HandleCorsPreflight()
         {
-            // Cette méthode est juste là pour intercepter l'appel OPTIONS.
-            // On ajoute les en-têtes nécessaires.
             AddCorsHeaders();
         }
 
-        // --- 3. NOUVELLE MÉTHODE HELPER POUR AJOUTER LES EN-TÊTES ---
         private static void AddCorsHeaders()
         {
-            // Le "WebOperationContext" permet de manipuler la réponse HTTP
             if (WebOperationContext.Current != null)
             {
                 var headers = WebOperationContext.Current.OutgoingResponse.Headers;
-                // C'est l'en-tête MAGIQUE. Il dit "J'autorise tout le monde".
                 headers.Add("Access-Control-Allow-Origin", "*");
-                // Permet les méthodes GET (votre itinéraire) et OPTIONS (le pré-vol)
                 headers.Add("Access-Control-Allow-Methods", "GET, OPTIONS");
-                // Autorise certains en-têtes
                 headers.Add("Access-Control-Allow-Headers", "Content-Type");
             }
         }
