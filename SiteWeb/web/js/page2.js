@@ -84,27 +84,51 @@ async function geocodeAddress(address) {
   return data.features[0].geometry.coordinates;
 }
 
-// Étape 4 : Afficher les instructions (ne change pas)
+// Étape 4 : Afficher les instructions 
 function displayInstructions(segments) {
   const detailsDiv = document.getElementById('details-container');
   detailsDiv.innerHTML = '';
+
   segments.forEach(segment => {
     const icon = (segment.Mode === 'walk') ? '🚶' : '🚲';
     const duration = Math.round(segment.Duration / 60);
     const distance = Math.round(segment.Distance);
-    const p = document.createElement('p');
-    p.innerHTML = `<strong>${icon} ${segment.Mode.toUpperCase()}</strong>: ${segment.Instructions} 
-                       <br><small>(${distance}m, environ ${duration} min)</small>`;
-    detailsDiv.appendChild(p);
+
+    // Crée un bloc pour ce segment
+    const segmentDiv = document.createElement('div');
+    segmentDiv.classList.add('segment-block');
+
+    // Titre du segment
+    const title = document.createElement('p');
+    title.innerHTML = `
+      <strong>${icon} ${segment.Mode.toUpperCase()}</strong> :
+      ${segment.Instructions.split('→')[0]}
+      <br><small>(${distance}m, environ ${duration} min)</small>
+    `;
+    segmentDiv.appendChild(title);
+
+    // Séparer les instructions détaillées
+    const steps = segment.Instructions.split('→').map(s => s.trim()).filter(s => s.length > 0);
+    if (steps.length > 1) {
+      const stepsList = document.createElement('ul');
+      stepsList.classList.add('steps-list');
+      steps.forEach(step => {
+        const li = document.createElement('li');
+        li.textContent = step;
+        stepsList.appendChild(li);
+      });
+      segmentDiv.appendChild(stepsList);
+    }
+
+    detailsDiv.appendChild(segmentDiv);
   });
 }
 
-// Étape 5 : Dessiner la carte (légèrement modifié pour le nettoyage)
-// Étape 5 : Dessiner la carte (CORRIGÉE)
+
+// Étape 5 : Dessiner la carte
 function displayMapRoute(segments) {
   let allCoords = [];
   segments.forEach(segment => {
-    // === CORRECTION ICI : "L" majuscule ===
     const startCoords = [segment.Start.Latitude, segment.Start.Longitude];
     const endCoords = [segment.End.Latitude, segment.End.Longitude];
 
