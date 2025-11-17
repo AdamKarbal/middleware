@@ -20,5 +20,6 @@ namespace GPSserver.Models
         public double Distance { get; set; }
         public Position Start { get; set; }
         public Position End { get; set; }
+        public List<Position> Geometry { get; set; }
     }
 }

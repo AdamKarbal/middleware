@@ -63,144 +63,188 @@ namespace GPSserver
         {
             try
             {
-                double originLat = double.Parse(fromLat, _culture);
-                double originLon = double.Parse(fromLon, _culture);
-                double destLat = double.Parse(toLat, _culture);
-                double destLon = double.Parse(toLon, _culture);
+                // 1. SETUP
+                var originPos = new Position { Latitude = double.Parse(fromLat, _culture), Longitude = double.Parse(fromLon, _culture) };
+                var destPos = new Position { Latitude = double.Parse(toLat, _culture), Longitude = double.Parse(toLon, _culture) };
 
-                var originPos = new Position { Latitude = originLat, Longitude = originLon };
-                var destPos = new Position { Latitude = destLat, Longitude = destLon };
+                var response = new ItineraryResponse
+                {
+                    Type = "MIXED_ROUTE",
+                    Segments = new List<RouteSegment>(),
+                    Polyline = new List<Position>(),
+                    TotalDuration = 0,
+                    TotalDistance = 0
+                };
 
+                // 2. ANALYSE DES VILLES
                 string originCity = GetCityFromGps(originPos);
-                if (string.IsNullOrEmpty(originCity))
-                    throw Error("Impossible de déterminer la ville de départ.");
+                string destCity = GetCityFromGps(destPos);
+                string originContract = (!string.IsNullOrEmpty(originCity)) ? FindContractForCity(originCity) : null;
+                string destContract = (!string.IsNullOrEmpty(destCity)) ? FindContractForCity(destCity) : null;
 
-                string contractName = FindContractForCity(originCity);
-                if (string.IsNullOrEmpty(contractName))
-                    throw Error($"Aucun contrat JCDecaux n'a été trouvé pour la ville : {originCity}");
+                Console.WriteLine($"[LOGIC] Départ: {originCity} ({originContract}) -> Arrivée: {destCity} ({destContract})");
 
-                // A PIED SEULEMENT
-                var walkOnlyRoute = GetOrsRoute("foot-walking", originPos, destPos);
-                double walkOnlyDuration = walkOnlyRoute.Routes.First().Summary.Duration;
-                double walkOnlyDistance = walkOnlyRoute.Routes.First().Summary.Distance;
+                // CurrentPos suit notre progression. Au début, on est au départ.
+                Position currentPos = originPos;
 
-                // JCDECAUX
-                var stations = GetJcDecauxStations(contractName);
-                if (stations == null || !stations.Any())
-                    throw Error($"Aucune station JCDecaux trouvée pour le contrat {contractName}.");
-
-                var startStation = FindClosestStationWithBikes(stations, originPos);
-                var endStation = FindClosestStationWithSpots(stations, destPos);
-                Console.WriteLine($" Start: {startStation?.Name ?? "AUCUNE"} - Bikes dispo: {startStation?.TotalStands?.Availabilities?.Bikes}");
-                Console.WriteLine($" End:   {endStation?.Name ?? "AUCUNE"} - Places dispo: {endStation?.TotalStands?.Availabilities?.Stands}");
-                if (startStation == null)
-                    throw Error("Aucune station avec vélos disponibles près du départ.");
-                if (endStation == null)
-                    throw Error("Aucune station avec places libres près de la destination.");
-                if (startStation.Number == endStation.Number)
-                    throw Error("La station de départ et d'arrivée est la même. Marcher est plus simple.");
-
-                // TRAJET A PIED + VELO + A PIED
-                var walkToStart = GetOrsRoute("foot-walking", originPos, startStation.Position);
-                var bikeRoute = GetOrsRoute("cycling-regular", startStation.Position, endStation.Position);
-                var walkToEnd = GetOrsRoute("foot-walking", endStation.Position, destPos);
-
-                var walk1Path = DecodePolyline(walkToStart.Routes.First().Geometry);
-                var bikePath = DecodePolyline(bikeRoute.Routes.First().Geometry);
-                var walk2Path = DecodePolyline(walkToEnd.Routes.First().Geometry);
-
-                var s1 = walkToStart.Routes.First().Summary;
-                var s2 = bikeRoute.Routes.First().Summary;
-                var s3 = walkToEnd.Routes.First().Summary;
-                double totalBikeDuration = s1.Duration + s2.Duration + s3.Duration;
-                double totalBikeDistance = s1.Distance + s2.Distance + s3.Distance;
-                ItineraryResponse response;
-                if (totalBikeDuration < walkOnlyDuration)
+                // ========================================================================
+                // ÉTAPE 1 : SEGMENT DÉPART (ex: Nantes) - On essaie de faire du vélo
+                // ========================================================================
+                if (originContract != null)
                 {
-                    response = new ItineraryResponse
+                    var stations = GetJcDecauxStations(originContract);
+                    // 1. Trouver la station la plus proche de MOI (pour prendre un vélo)
+                    var startStation = FindClosestStationWithBikes(stations, currentPos);
+
+                    // 2. Trouver la station la plus proche de la DESTINATION FINALE (pour poser le vélo et avancer)
+                    var dropOffStation = FindClosestStationWithSpots(stations, destPos);
+
+                    // On ne fait du vélo que si ça vaut le coup (stations différentes)
+                    if (startStation != null && dropOffStation != null && startStation.Number != dropOffStation.Number)
                     {
-                        Type = "BIKE_ROUTE",
-                        TotalDuration = Math.Round(totalBikeDuration),
-                        TotalDistance = Math.Round(totalBikeDistance),
-                        Segments = new List<RouteSegment>
+                        Console.WriteLine($"[ETAPE 1] Vélo local à {originCity} : {startStation.Name} -> {dropOffStation.Name}");
 
-        {
-            new RouteSegment {
-                Mode = "walk",
-                Instructions = $"Marcher jusqu'à la station {startStation.Name} ({startStation.Address})",
-                Duration = Math.Round(s1.Duration),
-                Distance = Math.Round(s1.Distance),
-                Start = originPos,
-                End   = startStation.Position
-            },
-            new RouteSegment {
-                Mode = "bike",
-                Instructions = string.Join(" → ", bikeRoute.Routes
-                    .SelectMany(r => r.Segments)
-                    .SelectMany(s => s.Steps)
-                    .Select(st => st.Instruction))
-                    ?? $"Prendre un vélo jusqu'à la station {endStation.Name} ({endStation.Address})",
-                Duration = Math.Round(s2.Duration),
-                Distance = Math.Round(s2.Distance),
-                Start = startStation.Position,
-                End   = endStation.Position
-            },
-            new RouteSegment {
-                Mode = "walk",
-                Instructions = string.Join(" → ", walkToEnd.Routes
-                    .SelectMany(r => r.Segments)
-                    .SelectMany(s => s.Steps)
-                    .Select(st => st.Instruction))
-                    ?? "Marcher jusqu'à votre destination finale",
+                        // Marche -> Station
+                        AddSegmentToResponse(response, "walk", currentPos, startStation.Position, $"Marcher vers {startStation.Name}");
+                        // Vélo -> Station de sortie
+                        AddSegmentToResponse(response, "bike", startStation.Position, dropOffStation.Position, $"Vélo vers {dropOffStation.Name}");
 
-                Duration = Math.Round(s3.Duration),
-                Distance = Math.Round(s3.Distance),
-                Start = endStation.Position,
-                End   = destPos
-            }
-        }
-                    };
+                        // On a avancé ! Notre nouvelle position est la station où on a posé le vélo
+                        currentPos = dropOffStation.Position;
+                    }
                 }
-                else
+
+                // ========================================================================
+                // ÉTAPE 2 : SEGMENT ARRIVÉE (ex: Lyon) - Préparation
+                // ========================================================================
+                // On doit savoir OÙ on va atterrir à Lyon avant de calculer le trajet du milieu.
+
+                Position lyonEntryPos = destPos; // Par défaut, on vise direct la destination
+                Station lyonPickUpStation = null;
+                Station lyonDropOffStation = null;
+                bool doBikeAtArrival = false;
+
+                if (destContract != null)
                 {
-                    response = new ItineraryResponse
+                    var stations = GetJcDecauxStations(destContract);
+
+                    // 1. Quelle station à Lyon est la plus proche de d'où je viens (Nantes/currentPos) ?
+                    lyonPickUpStation = FindClosestStationWithBikes(stations, currentPos);
+
+                    // 2. Quelle station est proche de ma destination finale ?
+                    lyonDropOffStation = FindClosestStationWithSpots(stations, destPos);
+
+                    if (lyonPickUpStation != null && lyonDropOffStation != null && lyonPickUpStation.Number != lyonDropOffStation.Number)
                     {
-                        Type = "WALK",
-                        TotalDuration = Math.Round(walkOnlyDuration),
-                        TotalDistance = Math.Round(walkOnlyDistance),
-                        Segments = new List<RouteSegment>
-        {
-            new RouteSegment {
-                Mode = "walk",
-                Instructions = "Marcher jusqu'à votre destination",
-                Duration = Math.Round(walkOnlyDuration),
-                Distance = Math.Round(walkOnlyDistance),
-                Start = originPos,
-                End   = destPos
-            }
-        }
-                    };
+                        doBikeAtArrival = true;
+                        // Si on fait du vélo à l'arrivée, notre "cible" pour le trajet du milieu, 
+                        // c'est la station où on va prendre le vélo !
+                        lyonEntryPos = lyonPickUpStation.Position;
+                    }
                 }
-                response.Polyline = new List<Position>();
-                response.Polyline.AddRange(walk1Path);
-                response.Polyline.AddRange(bikePath);
-                response.Polyline.AddRange(walk2Path);
+
+                // ========================================================================
+                // ÉTAPE 3 : LE "GAP" (Le trajet Inter-villes)
+                // ========================================================================
+                // On va de notre position actuelle (fin étape 1) jusqu'à l'entrée de l'étape 3 (ou la fin)
+
+                // Petite optimisation : Si on est déjà sur place (départ == arrivée), on évite un appel inutile
+                double distGap = CalculateDistance(currentPos, lyonEntryPos);
+                if (distGap > 20) // Si on a bougé de plus de 20 mètres
+                {
+                    Console.WriteLine($"[ETAPE 2] Transition (Marche) : Distance {Math.Round(distGap)}m");
+                    AddSegmentToResponse(response, "walk", currentPos, lyonEntryPos, "Trajet de transition (Marche)");
+                    currentPos = lyonEntryPos;
+                }
+
+                // ========================================================================
+                // ÉTAPE 4 : EXÉCUTION SEGMENT ARRIVÉE (Si validé)
+                // ========================================================================
+                if (doBikeAtArrival)
+                {
+                    Console.WriteLine($"[ETAPE 3] Vélo local à {destCity} : {lyonPickUpStation.Name} -> {lyonDropOffStation.Name}");
+
+                    // Vélo -> Station proche destination
+                    AddSegmentToResponse(response, "bike", lyonPickUpStation.Position, lyonDropOffStation.Position, $"Vélo vers {lyonDropOffStation.Name}");
+                    currentPos = lyonDropOffStation.Position;
+                }
+
+                // ========================================================================
+                // ÉTAPE 5 : DERNIERS MÈTRES
+                // ========================================================================
+                AddSegmentToResponse(response, "walk", currentPos, destPos, "Marcher jusqu'à la destination finale");
+
+
+                // FIN
                 AddCorsHeaders();
-                Console.WriteLine(JsonConvert.SerializeObject(response, Formatting.Indented));
-
-                return response; 
-            }
-            catch (WebFaultException<ErrorResponse>)
-            {
-                // nos erreurs "métier" (400) → on les laisse passer
-                throw;
+                return response;
             }
             catch (Exception ex)
             {
                 var real = (ex is AggregateException ae && ae.InnerException != null) ? ae.InnerException : ex;
-                Console.WriteLine("Erreur DÉTAILLÉE dans FindItinerary : \n" + real);
-                throw Error(real.Message); // renvoie { "error": "..."} avec HTTP 400
+                Console.WriteLine("ERREUR : \n" + real);
+                throw Error(real.Message);
             }
+        }
+
+        // --- HELPER pour ajouter proprement un segment et mettre à jour les totaux ---
+        private void AddSegmentToResponse(ItineraryResponse response, string mode, Position start, Position end, string instructionBase)
+        {
+            // Appel ORS
+            string profile = (mode == "walk") ? "foot-walking" : "cycling-regular";
+            var orsData = GetOrsRoute(profile, start, end);
+            var summary = orsData.Routes.First().Summary;
+            var segmentGeometry = DecodePolyline(orsData.Routes.First().Geometry);
+
+            // Mise à jour totaux
+            response.TotalDuration += summary.Duration;
+            response.TotalDistance += summary.Distance;
+
+            // Instructions détaillées
+            string details = string.Join(" → ", orsData.Routes.First().Segments
+                                .SelectMany(s => s.Steps)
+                                .Select(st => st.Instruction));
+            if (string.IsNullOrEmpty(details)) details = instructionBase;
+
+            // Ajout Segment
+            response.Segments.Add(new RouteSegment
+            {
+                Mode = mode,
+                Instructions = details,
+                Duration = Math.Round(summary.Duration),
+                Distance = Math.Round(summary.Distance),
+                Start = start,
+                End = end,
+                Geometry = segmentGeometry
+            });
+
+            // Ajout Polyline
+            response.Polyline.AddRange(segmentGeometry);
+        }
+
+
+        // Helper pour créer un segment (évite la duplication de code)
+        private RouteSegment CreateSegment(string mode, string instructionBase, OrsResponse orsData, Position start, Position end)
+        {
+            var route = orsData.Routes.First();
+
+            // On essaie de récupérer les instructions détaillées
+            string details = string.Join(" → ", route.Segments
+                                .SelectMany(s => s.Steps)
+                                .Select(st => st.Instruction));
+
+            // Si pas de détails, on met l'instruction de base
+            if (string.IsNullOrEmpty(details)) details = instructionBase;
+
+            return new RouteSegment
+            {
+                Mode = mode,
+                Instructions = details,
+                Duration = Math.Round(route.Summary.Duration),
+                Distance = Math.Round(route.Summary.Distance),
+                Start = start,
+                End = end
+            };
         }
 
 

@@ -1,15 +1,11 @@
 let map = null;
 let currentMapLayers = []; // Pour garder une trace des anciens tracés
-
-// Étape 1 : Initialiser la carte (ne change pas)
 function initMap() {
   map = L.map('map').setView([46.603354, 1.888334], 6); // Centre sur la France
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   }).addTo(map);
 }
-
-// Étape 2 : Fonction pour nettoyer la carte (NOUVEAU)
 function clearMap() {
   currentMapLayers.forEach(layer => {
     map.removeLayer(layer);
@@ -17,15 +13,10 @@ function clearMap() {
   currentMapLayers = [];
 }
 
-// Étape 3 : La logique principale (maintenant avec des arguments)
 async function startItineraryProcess(startAddress, endAddress) {
-
-  // Mettre à jour la sidebar
   document.getElementById("current-start").textContent = startAddress || "Non défini";
   document.getElementById("current-end").textContent = endAddress || "Non défini";
   document.getElementById("details-container").innerHTML = '<p>Recherche en cours...</p>';
-
-  // Nettoyer l'ancienne route avant de chercher la nouvelle
   clearMap();
 
   try {
@@ -39,33 +30,18 @@ async function startItineraryProcess(startAddress, endAddress) {
     const fromLon = startCoords[0];
     const toLat = endCoords[1];
     const toLon = endCoords[0];
-
-    // c. Appeler votre GPSserver
     const url = `http://localhost:8000/ServerGPS/itinerary?fromLat=${fromLat}&fromLon=${fromLon}&toLat=${toLat}&toLon=${toLon}`;
 
     const response = await fetch(url);
-
-    // --- AMÉLIORATION DE LA GESTION D'ERREUR ---
-    // On lit la réponse JSON dans tous les cas
     const data = await response.json();
 
-    // Si la réponse n'est PAS "ok" (ex: erreur 400 Bad Request)
     if (!response.ok) {
-      // data contient {"error": "message..."}
       throw new Error(data.error);
     }
-    // Si on arrive ici, c'est un succès (HTTP 200)
-
-    // d. Afficher les résultats (AVEC LE "S" MAJUSCULE)
     displayInstructions(data.Segments);
 
-    // Si le backend renvoie une vraie liste de coordonnées "Polyline"
-    if (data.Polyline && data.Polyline.length > 0) {
-      displayMapPolyline(data.Polyline);
-    } else {
-      // fallback (ancienne méthode, lignes droites)
-      displayMapRoute(data.Segments);
-    }
+    // On force l'utilisation de l'affichage segmenté pour avoir les couleurs
+    displayMapRoute(data.Segments);
 
 
   } catch (err) {
@@ -74,7 +50,6 @@ async function startItineraryProcess(startAddress, endAddress) {
   }
 }
 
-// Helper pour géocoder (ne change pas)
 async function geocodeAddress(address) {
   const res = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(address)}&limit=1`);
   const data = await res.json();
@@ -84,7 +59,6 @@ async function geocodeAddress(address) {
   return data.features[0].geometry.coordinates;
 }
 
-// Étape 4 : Afficher les instructions 
 function displayInstructions(segments) {
   const detailsDiv = document.getElementById('details-container');
   detailsDiv.innerHTML = '';
@@ -93,12 +67,8 @@ function displayInstructions(segments) {
     const icon = (segment.Mode === 'walk') ? '🚶' : '🚲';
     const duration = Math.round(segment.Duration / 60);
     const distance = Math.round(segment.Distance);
-
-    // Crée un bloc pour ce segment
     const segmentDiv = document.createElement('div');
     segmentDiv.classList.add('segment-block');
-
-    // Titre du segment
     const title = document.createElement('p');
     title.innerHTML = `
       <strong>${icon} ${segment.Mode.toUpperCase()}</strong> :
@@ -107,7 +77,6 @@ function displayInstructions(segments) {
     `;
     segmentDiv.appendChild(title);
 
-    // Séparer les instructions détaillées
     const steps = segment.Instructions.split('→').map(s => s.trim()).filter(s => s.length > 0);
     if (steps.length > 1) {
       const stepsList = document.createElement('ul');
@@ -126,53 +95,84 @@ function displayInstructions(segments) {
 
 
 // Étape 5 : Dessiner la carte
+// Modifiez l'appel dans startItineraryProcess pour n'utiliser QUE celle-ci :
+// displayMapRoute(data.Segments); 
+
 function displayMapRoute(segments) {
-  let allCoords = [];
-  segments.forEach(segment => {
-    const startCoords = [segment.Start.Latitude, segment.Start.Longitude];
-    const endCoords = [segment.End.Latitude, segment.End.Longitude];
-
-    allCoords.push(startCoords);
-    allCoords.push(endCoords);
-
-    let color = (segment.Mode === 'walk') ? 'blue' : 'green';
-    let dash = (segment.Mode === 'walk') ? '5, 5' : null;
-
-    const polyline = L.polyline([startCoords, endCoords], {
-      color: color,
-      dashArray: dash
-    });
-    currentMapLayers.push(polyline);
-    polyline.addTo(map);
-  });
-
-  const startMarker = L.marker(allCoords[0]).bindPopup('Départ');
-  const endMarker = L.marker(allCoords[allCoords.length - 1]).bindPopup('Arrivée');
-  currentMapLayers.push(startMarker);
-  currentMapLayers.push(endMarker);
-  startMarker.addTo(map);
-  endMarker.addTo(map);
-
-  map.fitBounds(allCoords); // Centre la carte
-}
-function displayMapPolyline(polylineCoords) {
-  // Nettoyer les anciens tracés
+  // 1. On efface l'ancienne carte
   clearMap();
 
-  // Convertir le format [{latitude, longitude}, ...] en [[lat, lon], ...]
-  const routePoints = polylineCoords.map(p => [p.Latitude, p.Longitude]);
+  let allCoords = []; // Pour centrer la carte à la fin
 
-  // Créer la polyline Leaflet
+  segments.forEach(segment => {
+
+    // --- A. GESTION DES COULEURS ---
+    let color, weight, dashArray;
+
+    if (segment.Mode === 'bike') {
+      // VÉLO = ROUGE, ligne épaisse et pleine
+      color = 'red';
+      weight = 6;
+      dashArray = null;
+    } else {
+      // MARCHE = BLEU, ligne un peu plus fine, en pointillés
+      color = 'blue';
+      weight = 5;
+      dashArray = null; // Pointillés
+    }
+
+    // --- B. DESSIN DU TRACÉ DÉTAILLÉ ---
+    // On vérifie si le serveur nous a donné le tracé détaillé (Geometry)
+    if (segment.Geometry && segment.Geometry.length > 0) {
+
+      // Conversion des points C# {Latitude, Longitude} -> Leaflet [Lat, Lon]
+      const pathCoords = segment.Geometry.map(p => [p.Latitude, p.Longitude]);
+
+      // On dessine la ligne détaillée
+      const polyline = L.polyline(pathCoords, {
+        color: color,
+        weight: weight,
+        opacity: 0.8,
+        dashArray: dashArray
+      });
+
+      polyline.addTo(map);
+      currentMapLayers.push(polyline);
+
+      // On ajoute ces points à la liste globale pour le zoom final
+      allCoords = allCoords.concat(pathCoords);
+    }
+    else {
+      // SÉCURITÉ : Si pas de géométrie détaillée, on fait une ligne droite (fallback)
+      const start = [segment.Start.Latitude, segment.Start.Longitude];
+      const end = [segment.End.Latitude, segment.End.Longitude];
+      L.polyline([start, end], { color: color, dashArray: dashArray }).addTo(map);
+    }
+  });
+
+  // --- C. MARQUEURS DÉPART / ARRIVÉE ---
+  if (allCoords.length > 0) {
+    const startMarker = L.marker(allCoords[0]).bindPopup('Départ');
+    const endMarker = L.marker(allCoords[allCoords.length - 1]).bindPopup('Arrivée');
+
+    startMarker.addTo(map);
+    endMarker.addTo(map);
+    currentMapLayers.push(startMarker);
+    currentMapLayers.push(endMarker);
+
+    // On centre la carte pour voir tout le trajet
+    map.fitBounds(allCoords);
+  }
+}
+function displayMapPolyline(polylineCoords) {
+  clearMap();
+  const routePoints = polylineCoords.map(p => [p.Latitude, p.Longitude]);
   const routeLine = L.polyline(routePoints, {
     color: 'blue',
     weight: 4
   });
-
-  // Ajouter sur la carte
   routeLine.addTo(map);
   currentMapLayers.push(routeLine);
-
-  // Marqueurs départ/arrivée
   if (routePoints.length > 1) {
     const startMarker = L.marker(routePoints[0]).bindPopup('Départ');
     const endMarker = L.marker(routePoints[routePoints.length - 1]).bindPopup('Arrivée');
@@ -181,26 +181,18 @@ function displayMapPolyline(polylineCoords) {
     currentMapLayers.push(startMarker);
     currentMapLayers.push(endMarker);
   }
-
-  // Centrer la carte sur l'itinéraire
   map.fitBounds(routeLine.getBounds());
 }
 
 
 
-// --- ÉTAPE 6 : Le chef d'orchestre (MODIFIÉ) ---
 document.addEventListener('DOMContentLoaded', () => {
-  // Initialiser la carte
   initMap();
-
-  // Écouter les clics sur le bouton "Démarrer" (via l'événement)
   document.addEventListener('itinerary-search', (event) => {
     console.log("Événement de recherche reçu !", event.detail);
     const { start, end } = event.detail;
     startItineraryProcess(start, end);
   });
-
-  // Lancer une recherche initiale si des adresses sont en mémoire
   const startAddress = localStorage.getItem("startAddress");
   const endAddress = localStorage.getItem("endAddress");
   if (startAddress && endAddress) {
