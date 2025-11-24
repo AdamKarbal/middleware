@@ -141,7 +141,7 @@ function displayMapRoute(segments) {
 
     if (segment.Mode === 'bike') {
       // VÉLO = ROUGE, ligne épaisse et pleine
-      color = 'red';
+      color = 'green';
       weight = 6;
       dashArray = null;
     } else {
@@ -230,3 +230,57 @@ document.addEventListener('DOMContentLoaded', () => {
     startItineraryProcess(startAddress, endAddress);
   }
 });
+
+
+function connectToActiveMQ() {
+  const url = "ws://localhost:61614/stomp";
+  const client = Stomp.client(url);
+  const headers = {
+    login: 'admin',    
+    passcode: 'admin', 
+  };
+
+  client.connect(headers,
+    function (frame) {
+      client.subscribe("/topic/BikeNotif", function (message) {
+        try {
+          const content = JSON.parse(message.body);
+          showNotification(content.type, content.level, content.message);
+        } catch (e) {
+          console.error("Erreur lecture notif", e);
+        }
+      });
+    },
+    function (error) {
+      console.error('[ActiveMQ] Erreur de connexion : ' + error);
+      setTimeout(connectToActiveMQ, 5000);
+    }
+  );
+}
+
+function showNotification(type, level, text) {
+  const container = document.getElementById('notification-area');
+  if (!container) return;
+
+  const notif = document.createElement('div');
+  notif.classList.add('notif-box');
+
+  const cssClass = `notif-${level.toLowerCase()}`;
+  notif.classList.add(cssClass);
+
+  notif.innerHTML = `
+        <div style="font-size:0.8em; opacity:0.8;">${type}</div>
+        <div>${text}</div>
+    `;
+
+  container.appendChild(notif);
+
+  setTimeout(() => {
+    notif.style.opacity = '0';
+    setTimeout(() => notif.remove(), 500); 
+  }, 5000);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  connectToActiveMQ();
+})
