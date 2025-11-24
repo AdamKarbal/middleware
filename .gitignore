@@ -78,3 +78,8 @@ Thumbs.db
 # Git / merges
 # =========================
 *.orig
+
+apache-activemq-6.1.8/data/
+apache-activemq-6.1.8/tmp/
+*.log
+*.lock

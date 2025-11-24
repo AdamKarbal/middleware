@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35825.156 d17.13
+VisualStudioVersion = 17.13.35825.156
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GPSserver", "GPSserver\GPSserver\GPSserver.csproj", "{B6964066-AB8F-4224-9734-C87C7D152A8A}"
 EndProject
@@ -28,6 +28,10 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "web", "..\SiteWeb\web\", "{
 		SlnRelativePath = "..\SiteWeb\web\"
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeavyClient", "HeavyClient\HeavyClient.csproj", "{00B7DB3D-B32F-4D8F-A774-5043FC0A82D7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NotifServer", "NotifServer\NotifServer.csproj", "{236EF10B-445D-4030-9761-A58C73E77B9D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,6 +50,14 @@ Global
 		{E4651229-8CE0-5304-2F81-DB92FB998C3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E4651229-8CE0-5304-2F81-DB92FB998C3C}.Release|Any CPU.ActiveCfg = Debug|Any CPU
 		{E4651229-8CE0-5304-2F81-DB92FB998C3C}.Release|Any CPU.Build.0 = Debug|Any CPU
+		{00B7DB3D-B32F-4D8F-A774-5043FC0A82D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{00B7DB3D-B32F-4D8F-A774-5043FC0A82D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{00B7DB3D-B32F-4D8F-A774-5043FC0A82D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{00B7DB3D-B32F-4D8F-A774-5043FC0A82D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{236EF10B-445D-4030-9761-A58C73E77B9D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{236EF10B-445D-4030-9761-A58C73E77B9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{236EF10B-445D-4030-9761-A58C73E77B9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{236EF10B-445D-4030-9761-A58C73E77B9D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
