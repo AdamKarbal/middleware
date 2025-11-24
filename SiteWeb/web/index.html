@@ -3,14 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title></title>
+  <title>Projet Middleware - GPS Vélo Partagé</title>
   <link rel="stylesheet" href="/css/style.css">
-  <meta name="description" content="">
-  <meta property="og:title" content="">
-  <meta property="og:type" content="">
-  <meta property="og:url" content="">
-  <meta property="og:image" content="">
-  <meta property="og:image:alt" content="">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon.png">
@@ -18,45 +12,43 @@
   <meta name="theme-color" content="#fafafa">
 </head>
 
-
 <body>
   <header>
     <mon-burgermenu></mon-burgermenu>
   </header>
+
   <div class="container">
     <div class="side">
-      <h1>Chapitres</h1>
-      <p>Chapitre 1</p>
-      <p>Chapitre 2</p>
-      <p>Chapitre 3</p>
+      <h1>📘 Sommaire</h1>
+      <p><strong>Accueil</strong> – Présentation du projet</p>
+      <p><a href="page2.html">Itinéraire</a> – Carte interactive</p>
+      <p><a href="info.html">Informations</a> – Détails techniques</p>
     </div>
 
     <div class="main">
-      <h1>Bienvenue</h1>
-      <p>Voici le contenu principal.</p>
-      <p>Voici le contenu principal.</p>
-      <p>Voici le contenu principal.</p>
-      <p>Voici le contenu principal.</p>
-      <p>Voici le contenu principal.</p>
-      <p>Voici le contenu principal.</p>
-      <p>Voici le contenu principal.</p>
-      <p>Voici le contenu principal.</p>
-      <p>Voici le contenu principal.</p>
-      <p>Voici le contenu principal.</p>
-      <p>Voici le contenu principal.</p>
-      <p>Voici le contenu principal.</p>
-      <p>Voici le contenu principal.</p>
-      <p>Voici le contenu principal.</p>
-      <p>Voici le contenu principal.</p>
-      <p>Voici le contenu principal.</p>
-      <p>Voici le contenu principal.</p>
-      <p>Voici le contenu principal.</p>
+      <h1>🚴‍♂️ Projet Middleware – GPS Vélo Partagé</h1>
+      <p>
+        Ce projet vise à développer une architecture complète de <strong>services distribués</strong> permettant le calcul d’itinéraires intelligents
+        combinant la marche et le vélo, grâce aux données <strong>JCDecaux</strong> et <strong>OpenRouteService</strong>.
+      </p>
+
+      <h2>🧠 Architecture du projet</h2>
+      <ul>
+        <li><strong>ServerGPS (REST + SOAP)</strong> : gère les calculs d’itinéraires et interagit avec les APIs externes.</li>
+        <li><strong>ProxyCache (SOAP)</strong> : met en cache les réponses des APIs pour éviter les appels répétés et améliorer les performances.</li>
+        <li><strong>Serveur Lourd </strong> : utilise ServerGPS </li>
+        <li><strong>ActiveMQ</strong> : Notifications météo, trafic et pollution </li>
+      </ul>
+
+
     </div>
   </div>
-  <mon-footer></mon-footer>
-  <script src ="js/burgermenu.js" defer></script>
+
+  <footer>
+    <mon-footer></mon-footer>
+  </footer>
+
+  <script src="js/burgermenu.js" defer></script>
   <script src="js/footer.js" defer></script>
-
-
 </body>
 </html>
