@@ -88,17 +88,21 @@ function displayInstructions(segments) {
   const detailsDiv = document.getElementById('details-container');
   detailsDiv.innerHTML = '';
 
-  segments.forEach(segment => {
+  // 🔧 Ignorer les segments inutiles
+  const validSegments = segments.filter(s => s.Distance > 0);
+
+  validSegments.forEach(segment => {
     const icon = (segment.Mode === 'walk') ? '🚶' : '🚲';
     const distanceText = formatDistance(segment.Distance);
     const durationText = formatDuration(segment.Duration);
+
     const segmentDiv = document.createElement('div');
     segmentDiv.classList.add('segment-block');
     const title = document.createElement('p');
     title.innerHTML = `
       <strong>${icon} ${segment.Mode.toUpperCase()}</strong> :
       ${segment.Instructions.split('→')[0]}
-     <br><small>(${distanceText}, environ ${durationText})</small>
+      <br><small>(${distanceText}, environ ${durationText})</small>
     `;
     segmentDiv.appendChild(title);
 
@@ -117,6 +121,7 @@ function displayInstructions(segments) {
     detailsDiv.appendChild(segmentDiv);
   });
 }
+
 
 
 // Étape 5 : Dessiner la carte
