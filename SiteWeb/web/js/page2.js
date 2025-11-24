@@ -11,6 +11,13 @@ function formatDuration(seconds) {
   return `${minutes} min`;
 }
 
+function formatDistance(meters) {
+  if (meters >= 1000) {
+    return `${(meters / 1000).toFixed(1)} km`;
+  }
+  return `${meters} m`;
+}
+
 
 function initMap() {
   map = L.map('map').setView([46.603354, 1.888334], 6); // Centre sur la France
@@ -51,6 +58,12 @@ async function startItineraryProcess(startAddress, endAddress) {
       throw new Error(data.error);
     }
     displayInstructions(data.Segments);
+    // --- NOUVEAU : afficher distance et durée totales ---
+    if (data.TotalDistance && data.TotalDuration) {
+      document.getElementById("total-distance").textContent = formatDistance(data.TotalDistance);
+      document.getElementById("total-duration").textContent = formatDuration(data.TotalDuration);
+    }
+
 
     // On force l'utilisation de l'affichage segmenté pour avoir les couleurs
     displayMapRoute(data.Segments);
@@ -77,7 +90,7 @@ function displayInstructions(segments) {
 
   segments.forEach(segment => {
     const icon = (segment.Mode === 'walk') ? '🚶' : '🚲';
-    const distance = Math.round(segment.Distance);
+    const distanceText = formatDistance(segment.Distance);
     const durationText = formatDuration(segment.Duration);
     const segmentDiv = document.createElement('div');
     segmentDiv.classList.add('segment-block');
@@ -85,7 +98,7 @@ function displayInstructions(segments) {
     title.innerHTML = `
       <strong>${icon} ${segment.Mode.toUpperCase()}</strong> :
       ${segment.Instructions.split('→')[0]}
-     <br><small>(${distance} m, environ ${durationText})</small>
+     <br><small>(${distanceText}, environ ${durationText})</small>
     `;
     segmentDiv.appendChild(title);
 
