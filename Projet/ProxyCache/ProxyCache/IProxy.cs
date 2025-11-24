@@ -17,6 +17,10 @@ namespace ProxyCache
         [OperationContract]
         string GetWithTtl(string url, double seconds);
 
-    } 
+        [OperationContract]
+        string PostWithTtl(string url, string body, double seconds);
+
+
+    }
 }
 

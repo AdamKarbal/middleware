@@ -1,5 +1,17 @@
 let map = null;
 let currentMapLayers = []; // Pour garder une trace des anciens tracés
+
+function formatDuration(seconds) {
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+
+  if (days > 0) return `${days} j ${hours} h ${minutes} min`;
+  if (hours > 0) return `${hours} h ${minutes} min`;
+  return `${minutes} min`;
+}
+
+
 function initMap() {
   map = L.map('map').setView([46.603354, 1.888334], 6); // Centre sur la France
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -65,15 +77,15 @@ function displayInstructions(segments) {
 
   segments.forEach(segment => {
     const icon = (segment.Mode === 'walk') ? '🚶' : '🚲';
-    const duration = Math.round(segment.Duration / 60);
     const distance = Math.round(segment.Distance);
+    const durationText = formatDuration(segment.Duration);
     const segmentDiv = document.createElement('div');
     segmentDiv.classList.add('segment-block');
     const title = document.createElement('p');
     title.innerHTML = `
       <strong>${icon} ${segment.Mode.toUpperCase()}</strong> :
       ${segment.Instructions.split('→')[0]}
-      <br><small>(${distance}m, environ ${duration} min)</small>
+     <br><small>(${distance} m, environ ${durationText})</small>
     `;
     segmentDiv.appendChild(title);
 

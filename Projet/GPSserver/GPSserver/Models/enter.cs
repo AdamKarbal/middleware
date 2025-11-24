@@ -9,6 +9,7 @@ namespace GPSserver.Models
         public double TotalDistance { get; set; }
         public List<RouteSegment> Segments { get; set; }
         public List<Position> Polyline { get; set; }
+
     }
 
     public class RouteSegment

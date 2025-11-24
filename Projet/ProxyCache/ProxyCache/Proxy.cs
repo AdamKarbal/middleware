@@ -25,5 +25,19 @@ namespace ProxyCache
             UrlContentFetcher fetchedData = cache.Get(url, seconds);
             return fetchedData.Content;
         }
+
+        public string PostWithTtl(string url, string body, double seconds)
+        {
+            UrlContentFetcher.UrlToFetch = url;
+            UrlContentFetcher.BodyToPost = body;
+            UrlContentFetcher.ApiKey = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImU3NTFkMjk3MjQ4MjQwZjJiNDA2ZDI4ZjVhMjIzMmY2IiwiaCI6Im11cm11cjY0In0=";
+
+            UrlContentFetcher fetchedData = cache.Get(url + body, seconds);
+            UrlContentFetcher.BodyToPost = null; // reset
+            UrlContentFetcher.ApiKey = null;
+            return fetchedData.Content;
+        }
+
+
     }
 }

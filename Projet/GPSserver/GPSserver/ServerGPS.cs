@@ -305,43 +305,28 @@ namespace GPSserver
         private OrsResponse GetOrsRoute(string profile, Position start, Position end)
         {
             string url = $"https://api.openrouteservice.org/v2/directions/{profile}";
-            string body = $"{{\"coordinates\":[[{start.Longitude.ToString(_culture)},{start.Latitude.ToString(_culture)}],[{end.Longitude.ToString(_culture)},{end.Latitude.ToString(_culture)}]]}}";
 
-            using (var client = new WebClient())
+            // Ajout du paramètre de langue FR
+            string body = $@"
+    {{
+        ""coordinates"": [
+            [{start.Longitude.ToString(_culture)}, {start.Latitude.ToString(_culture)}],
+            [{end.Longitude.ToString(_culture)}, {end.Latitude.ToString(_culture)}]
+        ],
+        ""language"": ""fr""
+    }}";
+
+            using (var proxy = CreateProxyClient())
             {
-                client.Encoding = Encoding.UTF8;
-                client.Headers[HttpRequestHeader.ContentType] = "application/json";
-                client.Headers.Add("Authorization", $"Bearer {_orsKey}");
+                // Appel via le proxy avec mise en cache (10 minutes)
+                string jsonResponse = proxy.PostWithTtl(url, body, 600);
+                Console.WriteLine("[DEBUG ORS RESPONSE RAW]: " + jsonResponse.Substring(0, Math.Min(jsonResponse.Length, 200)));
 
-                try
-                {
-                    Console.WriteLine($"[ORS DEBUG] POST {url}");
-                    Console.WriteLine($"[ORS DEBUG] Body: {body}");
-
-                    string jsonResponse = client.UploadString(url, "POST", body);
-                    Console.WriteLine($"[ORS DEBUG] Response: {jsonResponse.Substring(0, Math.Min(120, jsonResponse.Length))}...");
-
-                    return JsonConvert.DeserializeObject<OrsResponse>(jsonResponse);
-                }
-                catch (WebException ex)
-                {
-                    if (ex.Response != null)
-                    {
-                        using (var reader = new System.IO.StreamReader(ex.Response.GetResponseStream()))
-                        {
-                            string errorResponse = reader.ReadToEnd();
-                            Console.WriteLine("[ORS ERROR] " + errorResponse);
-                            throw Error("Erreur ORS: " + errorResponse);
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine("[ORS ERROR] " + ex.Message);
-                        throw Error("Erreur ORS: " + ex.Message);
-                    }
-                }
+                return JsonConvert.DeserializeObject<OrsResponse>(jsonResponse);
             }
         }
+
+
 
 
 
@@ -459,6 +444,7 @@ namespace GPSserver
 
             return poly;
         }
+      
 
     }
 }
