@@ -50,8 +50,8 @@ namespace HeavyClient
                         Console.WriteLine("\n Information sur le trajet :");
                         Console.WriteLine("---------------------------------------------------");
                         Console.WriteLine($"Type de trajet : {itinerary.Type}");
-                        Console.WriteLine($"Durée totale   : {Math.Round(itinerary.TotalDuration / 60)} min");
-                        Console.WriteLine($"Distance totale: {Math.Round(itinerary.TotalDistance / 1000, 1)} km");
+                        Console.WriteLine($" Durée      : {FormatDuration(itinerary.TotalDuration)}");
+                        Console.WriteLine($" Distance   : {FormatDistance(itinerary.TotalDistance)}");
                         Console.WriteLine("---------------------------------------------------");
                         Console.WriteLine("Étapes :");
 
@@ -62,7 +62,7 @@ namespace HeavyClient
                             string instructions = segment.Instructions.Replace("→", "\n      ->");
 
                             Console.WriteLine(instructions);
-                            Console.WriteLine($"      ({Math.Round(segment.Distance)}m - {Math.Round(segment.Duration / 60)} min)");
+                            Console.WriteLine($"      ({FormatDistance(segment.Distance)} - {FormatDuration(segment.Duration)})");
                             Console.WriteLine(); 
                         }
                         Console.ResetColor();
@@ -101,6 +101,18 @@ namespace HeavyClient
                     throw new Exception($"Adresse introuvable : {address}");
                 }
             }
+        }
+        private static string FormatDuration(double seconds)
+        {
+            TimeSpan t = TimeSpan.FromSeconds(seconds);
+            if (t.TotalMinutes < 1) return $"{t.Seconds} sec";
+            if (t.TotalHours < 1) return $"{Math.Ceiling(t.TotalMinutes)} min";
+            return $"{(int)t.TotalHours}h {t.Minutes}min";
+        }
+        private static string FormatDistance(double meters)
+        {
+            if (meters < 1000) return $"{Math.Round(meters)} m";
+            return $"{Math.Round(meters / 1000, 1)} km";
         }
     }
 }
