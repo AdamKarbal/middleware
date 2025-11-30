@@ -8,13 +8,15 @@ Apache ActiveMQ doit être installé et lancé sur votre machine avant de démar
 
 Visual Studio 2022
 
-📦 Installation (A faire si on clone depuis le GitHub, si .zip, passer à la prochaine étape)
+📦 Installation 
 
-Ouvrez le fichier Projet.sln avec Visual Studio.
+Ouvrez le fichier Projet.sln (dans Projet) avec Visual Studio.
 
 Dans le menu en haut, cliquez sur Générer > Générer la solution (ou Ctrl + Shift + B).
 
 🚀 Lancement du projet
+
+Lancer ActiveMQ
 
 Rendez-vous dans le dossier racine : Middleware/Projet.
 
