@@ -1,19 +1,20 @@
 Let's Go Biking ! 🚲
 
 
+
 🛠️ Prérequis
 
 Apache ActiveMQ doit être installé et lancé sur votre machine avant de démarrer le projet.
 
 Visual Studio 2022
 
-📦 Installation 
+📦 Installation (A faire si on clone depuis le GitHub, si .zip, passer à la prochaine étape)
 
 Ouvrez le fichier Projet.sln avec Visual Studio.
 
 Dans le menu en haut, cliquez sur Générer > Générer la solution (ou Ctrl + Shift + B).
 
-🚀 Lancement Rapide (Tout-en-un)
+🚀 Lancement du projet
 
 Rendez-vous dans le dossier racine : Middleware/Projet.
 
@@ -36,3 +37,4 @@ Une des fenêtres noires ouvertes est le Client Lourd.
 Il suffit d'écrire l'adresse de départ et d'arrivée lorsque demandé.
 
 Pour quitter le client lourd, tapez simplement stop comme adresse de départ.
+
