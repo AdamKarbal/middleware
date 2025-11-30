@@ -1,6 +1,5 @@
 let map = null;
-let currentMapLayers = []; // Pour garder une trace des anciens tracés
-
+let currentMapLayers = []; 
 function formatDuration(seconds) {
   const days = Math.floor(seconds / 86400);
   const hours = Math.floor((seconds % 86400) / 3600);
@@ -20,7 +19,7 @@ function formatDistance(meters) {
 
 
 function initMap() {
-  map = L.map('map').setView([46.603354, 1.888334], 6); // Centre sur la France
+  map = L.map('map').setView([46.603354, 1.888334], 6); 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   }).addTo(map);
@@ -39,7 +38,6 @@ async function startItineraryProcess(startAddress, endAddress) {
   clearMap();
 
   try {
-    // b. Convertir les adresses en Coordonnées (Lat/Lon)
     const [startCoords, endCoords] = await Promise.all([
       geocodeAddress(startAddress),
       geocodeAddress(endAddress)
@@ -58,14 +56,10 @@ async function startItineraryProcess(startAddress, endAddress) {
       throw new Error(data.error);
     }
     displayInstructions(data.Segments);
-    // --- NOUVEAU : afficher distance et durée totales ---
     if (data.TotalDistance && data.TotalDuration) {
       document.getElementById("total-distance").textContent = formatDistance(data.TotalDistance);
       document.getElementById("total-duration").textContent = formatDuration(data.TotalDuration);
     }
-
-
-    // On force l'utilisation de l'affichage segmenté pour avoir les couleurs
     displayMapRoute(data.Segments);
 
 
@@ -87,8 +81,6 @@ async function geocodeAddress(address) {
 function displayInstructions(segments) {
   const detailsDiv = document.getElementById('details-container');
   detailsDiv.innerHTML = '';
-
-  // 🔧 Ignorer les segments inutiles
   const validSegments = segments.filter(s => s.Distance > 0);
 
   validSegments.forEach(segment => {
@@ -124,41 +116,31 @@ function displayInstructions(segments) {
 
 
 
-// Étape 5 : Dessiner la carte
-// Modifiez l'appel dans startItineraryProcess pour n'utiliser QUE celle-ci :
-// displayMapRoute(data.Segments); 
+
 
 function displayMapRoute(segments) {
-  // 1. On efface l'ancienne carte
   clearMap();
 
-  let allCoords = []; // Pour centrer la carte à la fin
+  let allCoords = []; 
 
   segments.forEach(segment => {
 
-    // --- A. GESTION DES COULEURS ---
     let color, weight, dashArray;
 
     if (segment.Mode === 'bike') {
-      // VÉLO = ROUGE, ligne épaisse et pleine
       color = 'green';
       weight = 6;
       dashArray = null;
     } else {
-      // MARCHE = BLEU, ligne un peu plus fine, en pointillés
       color = 'blue';
       weight = 5;
-      dashArray = null; // Pointillés
+      dashArray = null; 
     }
 
-    // --- B. DESSIN DU TRACÉ DÉTAILLÉ ---
-    // On vérifie si le serveur nous a donné le tracé détaillé (Geometry)
     if (segment.Geometry && segment.Geometry.length > 0) {
 
-      // Conversion des points C# {Latitude, Longitude} -> Leaflet [Lat, Lon]
       const pathCoords = segment.Geometry.map(p => [p.Latitude, p.Longitude]);
 
-      // On dessine la ligne détaillée
       const polyline = L.polyline(pathCoords, {
         color: color,
         weight: weight,
@@ -168,19 +150,14 @@ function displayMapRoute(segments) {
 
       polyline.addTo(map);
       currentMapLayers.push(polyline);
-
-      // On ajoute ces points à la liste globale pour le zoom final
       allCoords = allCoords.concat(pathCoords);
     }
     else {
-      // SÉCURITÉ : Si pas de géométrie détaillée, on fait une ligne droite (fallback)
       const start = [segment.Start.Latitude, segment.Start.Longitude];
       const end = [segment.End.Latitude, segment.End.Longitude];
       L.polyline([start, end], { color: color, dashArray: dashArray }).addTo(map);
     }
   });
-
-  // --- C. MARQUEURS DÉPART / ARRIVÉE ---
   if (allCoords.length > 0) {
     const startMarker = L.marker(allCoords[0]).bindPopup('Départ');
     const endMarker = L.marker(allCoords[allCoords.length - 1]).bindPopup('Arrivée');
@@ -189,8 +166,6 @@ function displayMapRoute(segments) {
     endMarker.addTo(map);
     currentMapLayers.push(startMarker);
     currentMapLayers.push(endMarker);
-
-    // On centre la carte pour voir tout le trajet
     map.fitBounds(allCoords);
   }
 }

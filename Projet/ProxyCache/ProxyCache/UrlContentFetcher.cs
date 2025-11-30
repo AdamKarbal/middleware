@@ -25,21 +25,15 @@ namespace ProxyCache
                 using (WebClient client = new WebClient())
                 {
                     client.Encoding = Encoding.UTF8;
-
-                    // 🔹 Si c’est une requête ORS, ajoute la clé
                     if (UrlToFetch.Contains("openrouteservice.org") && !string.IsNullOrEmpty(ApiKey))
                         client.Headers.Add("Authorization", $"Bearer {ApiKey}");
-
                     client.Headers[HttpRequestHeader.ContentType] = "application/json";
-
                     if (!string.IsNullOrEmpty(BodyToPost))
                     {
-                        // Requête POST
                         Content = client.UploadString(UrlToFetch, "POST", BodyToPost);
                     }
                     else
                     {
-                        // Requête GET
                         Content = client.DownloadString(UrlToFetch);
                     }
                 }

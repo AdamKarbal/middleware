@@ -33,7 +33,7 @@ namespace ProxyCache
             UrlContentFetcher.ApiKey = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImU3NTFkMjk3MjQ4MjQwZjJiNDA2ZDI4ZjVhMjIzMmY2IiwiaCI6Im11cm11cjY0In0=";
 
             UrlContentFetcher fetchedData = cache.Get(url + body, seconds);
-            UrlContentFetcher.BodyToPost = null; // reset
+            UrlContentFetcher.BodyToPost = null; 
             UrlContentFetcher.ApiKey = null;
             return fetchedData.Content;
         }

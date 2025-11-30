@@ -63,10 +63,8 @@ namespace GPSserver
         {
             try
             {
-                // 1. SETUP
                 var originPos = new Position { Latitude = double.Parse(fromLat, _culture), Longitude = double.Parse(fromLon, _culture) };
                 var destPos = new Position { Latitude = double.Parse(toLat, _culture), Longitude = double.Parse(toLon, _culture) };
-
                 var response = new ItineraryResponse
                 {
                     Type = "MIXED_ROUTE",
@@ -76,7 +74,6 @@ namespace GPSserver
                     TotalDistance = 0
                 };
 
-                // 2. ANALYSE DES VILLES
                 string originCity = GetCityFromGps(originPos);
                 string destCity = GetCityFromGps(destPos);
                 string originContract = (!string.IsNullOrEmpty(originCity)) ? FindContractForCity(originCity) : null;
@@ -84,42 +81,23 @@ namespace GPSserver
 
                 Console.WriteLine($"[LOGIC] Départ: {originCity} ({originContract}) -> Arrivée: {destCity} ({destContract})");
 
-                // CurrentPos suit notre progression. Au début, on est au départ.
                 Position currentPos = originPos;
 
-                // ========================================================================
-                // ÉTAPE 1 : SEGMENT DÉPART (ex: Nantes) - On essaie de faire du vélo
-                // ========================================================================
                 if (originContract != null)
                 {
                     var stations = GetJcDecauxStations(originContract);
-                    // 1. Trouver la station la plus proche de MOI (pour prendre un vélo)
                     var startStation = FindClosestStationWithBikes(stations, currentPos);
-
-                    // 2. Trouver la station la plus proche de la DESTINATION FINALE (pour poser le vélo et avancer)
                     var dropOffStation = FindClosestStationWithSpots(stations, destPos);
-
-                    // On ne fait du vélo que si ça vaut le coup (stations différentes)
                     if (startStation != null && dropOffStation != null && startStation.Number != dropOffStation.Number)
                     {
                         Console.WriteLine($"[ETAPE 1] Vélo local à {originCity} : {startStation.Name} -> {dropOffStation.Name}");
-
-                        // Marche -> Station
                         AddSegmentToResponse(response, "walk", currentPos, startStation.Position, $"Marcher vers {startStation.Name}");
-                        // Vélo -> Station de sortie
                         AddSegmentToResponse(response, "bike", startStation.Position, dropOffStation.Position, $"Vélo vers {dropOffStation.Name}");
-
-                        // On a avancé ! Notre nouvelle position est la station où on a posé le vélo
                         currentPos = dropOffStation.Position;
                     }
                 }
 
-                // ========================================================================
-                // ÉTAPE 2 : SEGMENT ARRIVÉE (ex: Lyon) - Préparation
-                // ========================================================================
-                // On doit savoir OÙ on va atterrir à Lyon avant de calculer le trajet du milieu.
-
-                Position lyonEntryPos = destPos; // Par défaut, on vise direct la destination
+                Position lyonEntryPos = destPos; 
                 Station lyonPickUpStation = null;
                 Station lyonDropOffStation = null;
                 bool doBikeAtArrival = false;
@@ -127,55 +105,32 @@ namespace GPSserver
                 if (destContract != null)
                 {
                     var stations = GetJcDecauxStations(destContract);
-
-                    // 1. Quelle station à Lyon est la plus proche de d'où je viens (Nantes/currentPos) ?
                     lyonPickUpStation = FindClosestStationWithBikes(stations, currentPos);
-
-                    // 2. Quelle station est proche de ma destination finale ?
                     lyonDropOffStation = FindClosestStationWithSpots(stations, destPos);
 
                     if (lyonPickUpStation != null && lyonDropOffStation != null && lyonPickUpStation.Number != lyonDropOffStation.Number)
                     {
                         doBikeAtArrival = true;
-                        // Si on fait du vélo à l'arrivée, notre "cible" pour le trajet du milieu, 
-                        // c'est la station où on va prendre le vélo !
                         lyonEntryPos = lyonPickUpStation.Position;
                     }
                 }
 
-                // ========================================================================
-                // ÉTAPE 3 : LE "GAP" (Le trajet Inter-villes)
-                // ========================================================================
-                // On va de notre position actuelle (fin étape 1) jusqu'à l'entrée de l'étape 3 (ou la fin)
-
-                // Petite optimisation : Si on est déjà sur place (départ == arrivée), on évite un appel inutile
                 double distGap = CalculateDistance(currentPos, lyonEntryPos);
-                if (distGap > 20) // Si on a bougé de plus de 20 mètres
+                if (distGap > 20)
                 {
                     Console.WriteLine($"[ETAPE 2] Transition (Marche) : Distance {Math.Round(distGap)}m");
                     AddSegmentToResponse(response, "walk", currentPos, lyonEntryPos, "Trajet de transition (Marche)");
                     currentPos = lyonEntryPos;
                 }
-
-                // ========================================================================
-                // ÉTAPE 4 : EXÉCUTION SEGMENT ARRIVÉE (Si validé)
-                // ========================================================================
                 if (doBikeAtArrival)
                 {
                     Console.WriteLine($"[ETAPE 3] Vélo local à {destCity} : {lyonPickUpStation.Name} -> {lyonDropOffStation.Name}");
 
-                    // Vélo -> Station proche destination
                     AddSegmentToResponse(response, "bike", lyonPickUpStation.Position, lyonDropOffStation.Position, $"Vélo vers {lyonDropOffStation.Name}");
                     currentPos = lyonDropOffStation.Position;
                 }
 
-                // ========================================================================
-                // ÉTAPE 5 : DERNIERS MÈTRES
-                // ========================================================================
                 AddSegmentToResponse(response, "walk", currentPos, destPos, "Marcher jusqu'à la destination finale");
-
-
-                // FIN
                 AddCorsHeaders();
                 return response;
             }
@@ -187,26 +142,18 @@ namespace GPSserver
             }
         }
 
-        // --- HELPER pour ajouter proprement un segment et mettre à jour les totaux ---
         private void AddSegmentToResponse(ItineraryResponse response, string mode, Position start, Position end, string instructionBase)
         {
-            // Appel ORS
             string profile = (mode == "walk") ? "foot-walking" : "cycling-regular";
             var orsData = GetOrsRoute(profile, start, end);
             var summary = orsData.Routes.First().Summary;
             var segmentGeometry = DecodePolyline(orsData.Routes.First().Geometry);
-
-            // Mise à jour totaux
             response.TotalDuration += summary.Duration;
             response.TotalDistance += summary.Distance;
-
-            // Instructions détaillées
             string details = string.Join(" → ", orsData.Routes.First().Segments
                                 .SelectMany(s => s.Steps)
                                 .Select(st => st.Instruction));
             if (string.IsNullOrEmpty(details)) details = instructionBase;
-
-            // Ajout Segment
             response.Segments.Add(new RouteSegment
             {
                 Mode = mode,
@@ -218,36 +165,8 @@ namespace GPSserver
                 Geometry = segmentGeometry
             });
 
-            // Ajout Polyline
             response.Polyline.AddRange(segmentGeometry);
         }
-
-
-        // Helper pour créer un segment (évite la duplication de code)
-        private RouteSegment CreateSegment(string mode, string instructionBase, OrsResponse orsData, Position start, Position end)
-        {
-            var route = orsData.Routes.First();
-
-            // On essaie de récupérer les instructions détaillées
-            string details = string.Join(" → ", route.Segments
-                                .SelectMany(s => s.Steps)
-                                .Select(st => st.Instruction));
-
-            // Si pas de détails, on met l'instruction de base
-            if (string.IsNullOrEmpty(details)) details = instructionBase;
-
-            return new RouteSegment
-            {
-                Mode = mode,
-                Instructions = details,
-                Duration = Math.Round(route.Summary.Duration),
-                Distance = Math.Round(route.Summary.Distance),
-                Start = start,
-                End = end
-            };
-        }
-
-
 
 
         private string GetCityFromGps(Position pos)
@@ -306,7 +225,6 @@ namespace GPSserver
         {
             string url = $"https://api.openrouteservice.org/v2/directions/{profile}";
 
-            // Ajout du paramètre de langue FR
             string body = $@"
     {{
         ""coordinates"": [
@@ -318,7 +236,6 @@ namespace GPSserver
 
             using (var proxy = CreateProxyClient())
             {
-                // Appel via le proxy avec mise en cache (10 minutes)
                 string jsonResponse = proxy.PostWithTtl(url, body, 600);
                 Console.WriteLine("[DEBUG ORS RESPONSE RAW]: " + jsonResponse.Substring(0, Math.Min(jsonResponse.Length, 200)));
 

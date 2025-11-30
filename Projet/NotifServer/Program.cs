@@ -41,10 +41,6 @@ namespace NotifServer
             catch (Exception ex)
             {
                 Console.WriteLine($"ERREUR : {ex.Message}");
-                Console.WriteLine("Vérifiez que :");
-                Console.WriteLine("1. ActiveMQ est lancé.");
-                Console.WriteLine("2. Le connecteur 'stomp' (61613) est bien dans activemq.xml");
-                Console.ReadLine();
             }
         }
     }

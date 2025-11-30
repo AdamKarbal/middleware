@@ -71,17 +71,14 @@ class Itineraire extends HTMLElement {
     endInput.addEventListener("input", e => debouncedFetchEnd(e.target.value));
     startButton.addEventListener("click", () => {
       if (startAddress && endAddress) {
-        // Au lieu de recharger, on crée un événement
         const searchEvent = new CustomEvent('itinerary-search', {
           detail: {
             start: startAddress,
             end: endAddress
           },
-          bubbles: true, // Permet à l'événement de "remonter"
-          composed: true // Permet de traverser le Shadow DOM
+          bubbles: true, 
+          composed: true 
         });
-
-        // On déclenche l'événement depuis le composant
         this.dispatchEvent(searchEvent);
       }
     });

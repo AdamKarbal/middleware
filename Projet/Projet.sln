@@ -32,6 +32,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeavyClient", "HeavyClient\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NotifServer", "NotifServer\NotifServer.csproj", "{236EF10B-445D-4030-9761-A58C73E77B9D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebServer", "WebServer\WebServer.csproj", "{E5C90C80-5ED8-4844-A2E2-7C4918CD8AD7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -58,6 +60,10 @@ Global
 		{236EF10B-445D-4030-9761-A58C73E77B9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{236EF10B-445D-4030-9761-A58C73E77B9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{236EF10B-445D-4030-9761-A58C73E77B9D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5C90C80-5ED8-4844-A2E2-7C4918CD8AD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5C90C80-5ED8-4844-A2E2-7C4918CD8AD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5C90C80-5ED8-4844-A2E2-7C4918CD8AD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5C90C80-5ED8-4844-A2E2-7C4918CD8AD7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

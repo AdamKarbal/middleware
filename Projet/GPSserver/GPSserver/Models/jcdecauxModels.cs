@@ -8,7 +8,7 @@ namespace GPSserver.Models
         [JsonProperty("number")]
         public int Number { get; set; }
 
-        [JsonProperty("contractName")] // CORRECT
+        [JsonProperty("contractName")] 
         public string ContractName { get; set; }
 
         [JsonProperty("name")]
@@ -23,7 +23,7 @@ namespace GPSserver.Models
         [JsonProperty("status")]
         public string Status { get; set; }
 
-        [JsonProperty("totalStands")] // CORRECT
+        [JsonProperty("totalStands")] 
         public TotalStands TotalStands { get; set; }
     }
 
@@ -48,14 +48,13 @@ namespace GPSserver.Models
         public int Bikes { get; set; }
 
         [JsonProperty("stands")]
-        public int Stands { get; set; } // Les places libres
+        public int Stands { get; set; }
     }
     public class JcdecauxContract
     {
         [JsonProperty("name")]
-        public string Name { get; set; } // C'est le nom à utiliser, ex: "Lyon"
-
+        public string Name { get; set; } 
         [JsonProperty("cities")]
-        public List<string> Cities { get; set; } // Villes couvertes, ex: ["Lyon", "Villeurbanne"]
+        public List<string> Cities { get; set; } 
     }
 }

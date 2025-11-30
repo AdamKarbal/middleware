@@ -3,7 +3,6 @@ using Newtonsoft.Json;
 
 namespace GPSserver.Models
 {
-    // === Itinéraires (Directions) ===
     public class OrsResponse
     {
         [JsonProperty("routes")]
@@ -47,13 +46,12 @@ namespace GPSserver.Models
     public class Summary
     {
         [JsonProperty("distance")]
-        public double Distance { get; set; } // en mètres
+        public double Distance { get; set; } 
 
         [JsonProperty("duration")]
-        public double Duration { get; set; } // en secondes
+        public double Duration { get; set; } 
     }
 
-    // === Géocodage inverse ===
     public class OrsReverseGeocodeResponse
     {
         [JsonProperty("features")]
